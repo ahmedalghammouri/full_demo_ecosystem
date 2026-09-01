@@ -26,6 +26,7 @@ import { HierarchyModule } from './modules/hierarchy/hierarchy.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { EnergyModule } from './modules/energy/energy.module';
 import { PowerQualityModule } from './modules/power-quality/power-quality.module';
+import { EcosystemModule } from './modules/ecosystem/ecosystem.module';
 import { TraceabilityModule } from './modules/traceability/traceability.module';
 import { AiModule } from './modules/ai/ai.module';
 import { DashboardsModule } from './modules/dashboards/dashboards.module';
@@ -149,6 +150,8 @@ import { configuration } from './config/configuration';
     // Served only to factories whose classification grants the capability;
     // the service refuses rather than returning an empty set.
     PowerQualityModule,
+    // Reports the platform against the Application Suite, locked modules included.
+    EcosystemModule,
     TraceabilityModule,
     AiModule,
     DashboardsModule,

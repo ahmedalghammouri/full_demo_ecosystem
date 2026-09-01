@@ -1,4 +1,5 @@
-import { validatePlantModel, plantSummary, moduleCoverage, ECOSYSTEM_MODULES, DEMO_USERS, LAYER_META } from './plant-model';
+import { validatePlantModel, plantSummary, DEMO_USERS } from './plant-model';
+import { moduleCoverage, ECOSYSTEM_MODULES, LAYER_META } from '../../src/modules/ecosystem/catalogue';
 
 const issues = validatePlantModel();
 const errors = issues.filter((i) => i.severity === 'ERROR');

@@ -87,7 +87,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 // page yet, so they are deliberately absent from the navigation: a sidebar entry
 // that 404s is worse in front of an audience than one that is not there.
 //
-//   /vision  /materials  /harmonics  /power-factor  /sld
+//   /vision  /materials  /power-factor  /sld
 //   /cost    /sustainability  /predictive  /environment
 //
 // Re-adding one is a single line here once its page exists. `pnpm caps:check`
@@ -132,6 +132,7 @@ interface NavItem {
  */
 const navItems: NavItem[] = [
   { label: 'Apps', href: '/apps', icon: Grip },
+  { label: 'Ecosystem Coverage', href: '/compliance', icon: LayoutGrid },
   { label: 'Plant Live Views', href: '/plant-live-view', icon: Monitor, permission: 'plant_dashboard:view' },
   // What the plant is doing NOW. The cockpits belong here and not under
   // Insights: a command centre answers "what is happening", which is the
@@ -344,6 +345,7 @@ const navItems: NavItem[] = [
         icon: Activity,
         children: [
           { label: 'PQ Events',        href: '/power-quality', icon: AlertTriangle },
+          { label: 'Harmonics',        href: '/harmonics',     icon: BarChart3     },
         ],
       },
     ],
