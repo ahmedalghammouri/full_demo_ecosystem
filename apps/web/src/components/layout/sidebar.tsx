@@ -82,6 +82,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
+// ── Pending screens ────────────────────────────────────────────────────────
+// These capability routes are modelled, gated and served by the API, but have no
+// page yet, so they are deliberately absent from the navigation: a sidebar entry
+// that 404s is worse in front of an audience than one that is not there.
+//
+//   /vision  /materials  /harmonics  /power-factor  /sld
+//   /cost    /sustainability  /predictive  /environment
+//
+// Re-adding one is a single line here once its page exists. `pnpm caps:check`
+// lists every capability route and which factory gets it.
 interface NavItem {
   label: string;
   href?: string;
@@ -142,7 +152,6 @@ const navItems: NavItem[] = [
       { label: 'Live Machines',   href: '/live/machines',   icon: Activity, badge: 'Live', badgeVariant: 'default' },
       // The 2.5D plant floor. Only where the site is modelled cell-by-cell.
       { label: 'Digital Twin',    href: '/twin',            icon: Boxes,    badge: 'Twin', badgeVariant: 'outline' },
-      { label: 'Environment',     href: '/environment',     icon: Activity  },
       // Shop Floor is an operator terminal — it lives in Operation Hub with the other floor screens.
       // The Downtime command centre lives with the other cockpits, under Dashboards.
       { label: 'Alarms',          href: '/alarms',          icon: AlarmClock, dynamicKey: 'activeAlarms', badgeVariant: 'destructive' },
@@ -335,13 +344,8 @@ const navItems: NavItem[] = [
         icon: Activity,
         children: [
           { label: 'PQ Events',        href: '/power-quality', icon: AlertTriangle },
-          { label: 'Harmonics',        href: '/harmonics',     icon: BarChart3     },
-          { label: 'Power Factor',     href: '/power-factor',  icon: Gauge         },
-          { label: 'Single Line Diagram', href: '/sld',        icon: Network       },
         ],
       },
-      { label: 'Cost & Tariff',    href: '/cost',           icon: BarChart3 },
-      { label: 'Sustainability',   href: '/sustainability',  icon: Activity  },
     ],
   },
   // The two functions that judge and keep the asset. Quality first: it is
@@ -356,7 +360,6 @@ const navItems: NavItem[] = [
       { label: 'Overview',             href: '/quality',              icon: Activity   },
       { label: 'Quality Intelligence', href: '/quality/intelligence', icon: TrendingUp },
       // The station's own view, with annotated rejects.
-      { label: 'Vision Inspection',    href: '/vision',               icon: Monitor, badge: 'CV', badgeVariant: 'default' },
       {
         label: 'Control & Inspection',
         icon: ClipboardCheck,
@@ -386,7 +389,6 @@ const navItems: NavItem[] = [
       { label: 'Overview',           href: '/maintenance',             icon: Gauge    },
       { label: 'Reliability Center', href: '/maintenance/reliability', icon: Activity },
       // Projection to an intervention threshold, not just history.
-      { label: 'Predictive Health',  href: '/predictive',              icon: TrendingUp, badge: 'AI', badgeVariant: 'default' },
       {
         label: 'Work Management',
         icon: ClipboardList,
@@ -451,7 +453,6 @@ const navItems: NavItem[] = [
       { label: 'Genealogy',            href: '/traceability/genealogy',   icon: GitBranch },
       { label: 'Material Consumption', href: '/traceability/consumption', icon: Boxes     },
       // Backward trace: which units carry a material lot, and how many shipped.
-      { label: 'Material Batches',     href: '/materials',                icon: Layers3   },
     ],
   },
   // How the plant is DEFINED and how it is connected. Product and process

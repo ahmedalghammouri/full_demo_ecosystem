@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { DashboardService } from './dashboard.service';
@@ -74,6 +74,19 @@ export class DashboardController {
     @Query('dateTo') dateTo?: string,
   ) {
     return this.dashboardService.getExecutive(user.factoryId, { timeframe, dateFrom, dateTo });
+  }
+
+  @Get('plant-layout')
+  @ApiOperation({ summary: 'Floor plan with each cell live state — the digital twin' })
+  @ApiQuery({ name: 'factoryId', required: false })
+  plantLayout(@CurrentUser() user: RequestUser, @Query('factoryId') factoryId?: string) {
+    const id = factoryId ?? user.factoryId;
+    if (!id) {
+      throw new ForbiddenException(
+        'No factory in scope. Select a factory, or pass ?factoryId= when signed in at enterprise level.',
+      );
+    }
+    return this.dashboardService.plantLayout(id);
   }
 
   @Get('kpis')

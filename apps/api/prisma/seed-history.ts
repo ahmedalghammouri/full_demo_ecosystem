@@ -680,6 +680,47 @@ async function seedFactoryHistory(f: FactoryDef, now: Date) {
   await insertMany('spcMeasurement', spcRows, (b) => prisma.sPCMeasurement.createMany({ data: b, skipDuplicates: true }));
   step(`${spcRows.length.toLocaleString()} SPC measurements`);
 
+
+  // ── Current status ──────────────────────────────────────────────────────
+  //
+  // `machine_current_status` is written by the edge gateway in a live plant.
+  // Nothing writes it here yet — the Virtual Plant that feeds the real gateway
+  // is not built — so every cell read OFFLINE and the twin showed a dead floor.
+  //
+  // The engine is deterministic, so rather than copying the last *recorded*
+  // state (which is whatever the machine happened to be doing when the history
+  // window ended — usually an end-of-shift planned stop) we simply ask it what
+  // each machine is doing at this instant. That is the same function the
+  // history was written from, so the floor agrees with the timeline behind it.
+  //
+  // It goes stale as the clock moves on. That is the Virtual Plant's job, and
+  // until it lands this is honest rather than fabricated.
+  const todayStart = startOfDay(now);
+  const todayTotals = await prisma.oeeMinute.groupBy({
+    by: ['machineId'],
+    where: { factoryId: ctx.factoryId, bucketStart: { gte: todayStart } },
+    _sum: { goodParts: true, rejectedParts: true, operatingMin: true, availabilityLossMin: true },
+  });
+  const totalsBy = new Map(todayTotals.map((t) => [t.machineId, t._sum]));
+
+  for (const m of f.machines) {
+    const id = ctx.machineId.get(m.code);
+    if (!id) continue;
+    const t = totalsBy.get(id);
+    await prisma.machineCurrentStatus.update({
+      where: { machineId: id },
+      data: {
+        state: machineStateAt(f, m, now) as any,
+        goodCount: Math.round(t?.goodParts ?? 0),
+        rejectCount: Math.round(t?.rejectedParts ?? 0),
+        runtimeMinutes: t?.operatingMin ?? 0,
+        downtimeMinutes: t?.availabilityLossMin ?? 0,
+        lastEventAt: now,
+      },
+    }).catch(() => undefined);
+  }
+  step(`current status set for ${f.machines.length} machines from the engine`);
+
   return {
     shifts: shiftCreates.length,
     minutes: minuteRows.length,

@@ -454,6 +454,29 @@ export function validatePlantModel(): ValidationIssue[] {
       const hasPq = f.devices.some((d) => d.tags.some((t) => /THD|\.PF$/.test(t.code)));
       if (!hasPq) err(f.code, `declares power-quality capability but no meter exposes THD or PF tags`);
     }
+    // The twin draws the plant as it is laid out, so a missing or overlapping
+    // footprint is survey data being wrong — which shows up as a cell sitting on
+    // top of another, at which point nobody trusts the rest of the screen.
+    if (caps.includes('DIGITAL_TWIN')) {
+      const placed = f.machines.filter((m) => m.grid);
+      if (!placed.length) err(f.code, 'declares DIGITAL_TWIN but no machine has a floor-plan footprint');
+      for (const m of f.machines) {
+        if (!m.grid) { warn(f.code, `machine ${m.code} has no footprint and will not appear on the twin`); continue; }
+        const { x, y, w, h } = m.grid;
+        if (w <= 0 || h <= 0) err(f.code, `machine ${m.code} has a footprint with no area`);
+        if (x < 0 || y < 0) err(f.code, `machine ${m.code} sits outside the floor plan`);
+      }
+      for (let i = 0; i < placed.length; i++) {
+        for (let j = i + 1; j < placed.length; j++) {
+          const a = placed[i].grid!, b = placed[j].grid!;
+          const overlaps =
+            a.x < b.x + b.w && b.x < a.x + a.w &&
+            a.y < b.y + b.h && b.y < a.y + a.h;
+          if (overlaps) err(f.code, `machines ${placed[i].code} and ${placed[j].code} occupy the same floor space`);
+        }
+      }
+    }
+
     if (caps.includes('VISION_INSPECTION') && !f.machines.some((m) => m.type === 'SENSOR')) {
       warn(f.code, 'declares VISION_INSPECTION but no machine is modelled as the inspection station');
     }

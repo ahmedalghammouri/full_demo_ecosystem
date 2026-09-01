@@ -190,6 +190,15 @@ export interface MachineDef {
   /** Seconds a stop must persist before it opens a downtime event. */
   downtimeThreshold?: number;
   installDate?: string;
+  /**
+   * Where the machine stands on the floor, in grid units.
+   *
+   * Required for a factory that declares DIGITAL_TWIN and ignored otherwise.
+   * The twin draws the plant as it is laid out, so this is survey data, not
+   * decoration: two cells that share a footprint are a modelling error, and the
+   * validator says so rather than letting them overlap on screen.
+   */
+  grid?: { x: number; y: number; w: number; h: number };
   /** Free-form, surfaced on the asset screen. */
   metadata?: Record<string, unknown>;
 }

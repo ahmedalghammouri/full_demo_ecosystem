@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { plantBound } from '../../common/plant-time.util';
 import { PrismaService } from '../../database/prisma.service';
 import { toPieces } from '../../common/units.util';
@@ -639,6 +639,109 @@ export class DashboardService {
       cum += r.duration;
       return { ...r, cumulative: total > 0 ? Math.round((cum / total) * 100) : 0 };
     });
+  }
+
+
+  /**
+   * The plant floor as it is laid out, with each cell's live state.
+   *
+   * Only served to a factory whose classification declares DIGITAL_TWIN — the
+   * footprint data exists nowhere else, and a twin drawn from machines with no
+   * surveyed position would be a diagram of nothing.
+   *
+   * The counts are today's, taken from the same measured-minute store the OEE
+   * screens read, so the number on a cell and the number on the KPI page are
+   * one fact rather than two estimates.
+   */
+  async plantLayout(factoryId: string) {
+    const factory = await this.prisma.factory.findUnique({
+      where: { id: factoryId },
+      select: { id: true, code: true, name: true, nameAr: true, metadata: true },
+    });
+    if (!factory) throw new ForbiddenException('Unknown factory');
+
+    const caps = (factory.metadata as { capabilities?: string[] } | null)?.capabilities ?? [];
+    if (!caps.includes('DIGITAL_TWIN')) {
+      throw new ForbiddenException(
+        `${factory.code} has no digital twin. Its classification does not include a surveyed floor plan.`,
+      );
+    }
+
+    const machines = await this.prisma.machine.findMany({
+      where: { factoryId, isActive: true, archivedAt: null },
+      select: {
+        id: true, code: true, name: true, nameAr: true, machineType: true,
+        sortOrder: true, metadata: true,
+        currentStatus: { select: { state: true, goodCount: true, rejectCount: true } },
+        line: { select: { code: true, name: true } },
+        area: { select: { code: true, name: true } },
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    const dayStart = new Date();
+    dayStart.setHours(0, 0, 0, 0);
+
+    // Today's output per machine, from the measured-minute store.
+    const today = await this.prisma.oeeMinute.groupBy({
+      by: ['machineId'],
+      where: { factoryId, bucketStart: { gte: dayStart } },
+      _sum: { goodParts: true, rejectedParts: true, operatingMin: true },
+    });
+    const todayBy = new Map(today.map((t) => [t.machineId, t]));
+
+    const openAlarms = await this.prisma.alarmEvent.groupBy({
+      by: ['machineId'],
+      where: { factoryId, resolvedAt: null },
+      _count: true,
+    });
+    const alarmsBy = new Map(openAlarms.map((a) => [a.machineId ?? '', a._count]));
+
+    const assets = machines
+      .map((m) => {
+        const meta = (m.metadata ?? {}) as Record<string, unknown>;
+        const grid = meta.grid as { x: number; y: number; w: number; h: number } | undefined;
+        if (!grid) return null; // no surveyed position, nothing to draw
+        const t = todayBy.get(m.id);
+        const state = m.currentStatus?.state ?? 'OFFLINE';
+        return {
+          code: m.code,
+          name: m.name,
+          nameAr: m.nameAr,
+          kind: m.machineType,
+          sequence: m.sortOrder,
+          grid,
+          state,
+          producing: state === 'RUNNING',
+          alarms: alarmsBy.get(m.id) ?? 0,
+          line: m.line?.code ?? null,
+          area: m.area?.name ?? null,
+          // Null, not zero: a cell that has not run today has no rate to show,
+          // and 0 would read as "running and producing nothing".
+          headline: t?._sum.operatingMin
+            ? {
+                label: 'Today',
+                value: Math.round(t._sum.goodParts ?? 0),
+                unit: (meta.countUnit as string) ?? 'pcs',
+              }
+            : null,
+          goodCount: Math.round(t?._sum.goodParts ?? 0),
+        };
+      })
+      .filter((a): a is NonNullable<typeof a> => a !== null);
+
+    const byState = assets.reduce<Record<string, number>>((acc, a) => {
+      acc[a.state] = (acc[a.state] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      factory: { code: factory.code, name: factory.name, nameAr: factory.nameAr },
+      assets,
+      byState,
+      producing: assets.filter((a) => a.producing).length,
+      total: assets.length,
+    };
   }
 
 }
