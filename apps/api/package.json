@@ -21,6 +21,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "ts-node prisma/seed.ts",
+    "prisma:seed:history": "tsx prisma/seed-history.ts",
     "prisma:seed:dashboards": "ts-node prisma/seed-dashboard-center.ts",
     "prisma:seed:emission": "ts-node prisma/seed-emission-factors.ts",
     "prisma:studio": "prisma studio",

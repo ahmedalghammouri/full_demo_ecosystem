@@ -187,6 +187,7 @@ services:
     command: >
       sh -c "npx prisma migrate deploy &&
              npx tsx prisma/seed.ts &&
+             npx tsx prisma/seed-history.ts &&
              pnpm start:dev"
 
   web:
