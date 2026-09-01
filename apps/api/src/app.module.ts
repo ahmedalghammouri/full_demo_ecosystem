@@ -25,6 +25,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { HierarchyModule } from './modules/hierarchy/hierarchy.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { EnergyModule } from './modules/energy/energy.module';
+import { PowerQualityModule } from './modules/power-quality/power-quality.module';
 import { TraceabilityModule } from './modules/traceability/traceability.module';
 import { AiModule } from './modules/ai/ai.module';
 import { DashboardsModule } from './modules/dashboards/dashboards.module';
@@ -145,6 +146,9 @@ import { configuration } from './config/configuration';
     HierarchyModule,
     InventoryModule,
     EnergyModule,
+    // Served only to factories whose classification grants the capability;
+    // the service refuses rather than returning an empty set.
+    PowerQualityModule,
     TraceabilityModule,
     AiModule,
     DashboardsModule,
