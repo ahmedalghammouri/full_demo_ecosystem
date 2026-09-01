@@ -164,7 +164,14 @@ services:
       JWT_REFRESH_SECRET: i360-demo-refresh-secret-change-in-prod-32chars
       JWT_EXPIRES_IN: 8h
       JWT_REFRESH_EXPIRES_IN: 30d
-      CORS_ORIGINS: http://localhost:3000,http://localhost:8080,http://web:3000
+      # The public domain is included explicitly so a deployment on a host
+      # outside the industry360 family still works without a code change.
+      # Its absence is not a subtle failure: every sign-in is rejected with
+      # a CORS error that names the origin but never the reason.
+      CORS_ORIGINS: >-
+        http://localhost:3000,http://localhost:8080,http://web:3000,
+        https://${PUBLIC_DOMAIN:-i360.industry360.cloud},
+        http://${PUBLIC_DOMAIN:-i360.industry360.cloud}
     volumes:
       # Writable paths only. The source is baked into the image; bind-mounting it
       # would shadow the build and drag the host's node_modules in with it.

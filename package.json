@@ -25,7 +25,8 @@
     "docker:down": "docker-compose down",
     "docker:build": "docker-compose build",
     "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
-    "caps:check": "tsx scripts/check-capabilities.ts"
+    "caps:check": "tsx scripts/check-capabilities.ts",
+    "cors:check": "tsx scripts/check-cors.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",

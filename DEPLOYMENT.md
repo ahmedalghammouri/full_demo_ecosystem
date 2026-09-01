@@ -377,6 +377,7 @@ the first (`docker compose -p i360 down`) or strip the `container_name` lines.
 | Screens render but the map is blank | The tile server is unreachable. Point `NEXT_PUBLIC_MAP_TILE_URL` at an internal one and rebuild web. |
 | Live values never change | Expected today. Machine state is computed at seed time; the Virtual Plant that keeps it live is not built yet. |
 | `500` on /api from the Next port, fine through nginx | `API_PROXY_TARGET` was not passed as a **build** arg. Next bakes rewrites into `routes-manifest.json` at build time; setting it at runtime does nothing. Check with `docker exec i360-web grep -o "http://[a-z0-9.:]*" .next/routes-manifest.json` — it must read `http://api:3001`. |
+| Sign-in fails with `CORS: origin … not allowed` | The API does not recognise the public domain. `CORS_ORIGINS` is built from `PUBLIC_DOMAIN`, so check that is set in `.env` and rebuild the api. `pnpm cors:check` tests the policy offline. |
 | Out of memory during build | Build one at a time: `docker compose -f docker-compose.yml build api`, then `web`. |
 | The subdomain serves a different project | Traefik matched another host rule first, or DNS has not propagated. `dig +short i360.industry360.cloud`. |
 | `network … declared as external` | You included `-f docker-compose.prod.yml`. There is no such file in this repo; use only the two named in step 4. |
