@@ -39,7 +39,7 @@ import {
   lineConstraint, qualityRateAt, scrapCount, processStress, machineHealth,
   pickDowntimeReason, tagValue, meterLoadKw, qualityResult, pickScrapCode,
   rand, round, clamp, startOfDay, lotFor, serialFor,
-  pqEventsInWindow, harmonicSpectrum, meterVoltageThd, meterCurrentThd,
+  pqEventsInWindow, harmonicSpectrum, meterVoltageThd, meterCurrentThd, meterPowerFactor,
 } from './plant/signal-engine';
 
 const prisma = new PrismaClient();
@@ -469,6 +469,11 @@ async function seedFactoryHistory(f: FactoryDef, now: Date) {
     for (let t = from.getTime(); t < now.getTime(); t += HOUR) {
       const kw = meterLoadKw(f, meter.code, t);
       if (!kw && meter.type === 'ELECTRICAL') continue;
+      // Power factor, and the reactive power it implies. Q = P·tan(acos(pf)) —
+      // derived rather than invented, so the two can never disagree.
+      const pf = meter.type === 'ELECTRICAL' ? meterPowerFactor(f, meter.code, t) : null;
+      const kvar = pf ? round(kw * Math.tan(Math.acos(clamp(pf, 0.01, 1))), 2) : null;
+
       energyRows.push({
         meterId: id,
         factoryId: ctx.factoryId,
@@ -478,6 +483,8 @@ async function seedFactoryHistory(f: FactoryDef, now: Date) {
         // One hour at this load, in the meter's own unit.
         value: round(kw, 3),
         powerKw: kw,
+        powerFactor: pf,
+        reactiveKvar: kvar,
         unit: meter.unit,
         source: 'AUTO',
         quality: 'GOOD',

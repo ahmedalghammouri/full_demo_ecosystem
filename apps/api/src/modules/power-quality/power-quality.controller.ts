@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, ForbiddenException, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PowerQualityService } from './power-quality.service';
+import { PowerFactorService } from './power-factor.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 interface RequestUser {
@@ -30,7 +31,10 @@ function scopeOf(user: RequestUser, factoryId?: string): string {
 @ApiBearerAuth()
 @Controller('power-quality')
 export class PowerQualityController {
-  constructor(private readonly svc: PowerQualityService) {}
+  constructor(
+    private readonly svc: PowerQualityService,
+    private readonly pf: PowerFactorService,
+  ) {}
 
   @Get('summary')
   @ApiOperation({ summary: 'Event counts by type, severity and ITIC zone over a window' })
@@ -95,6 +99,28 @@ export class PowerQualityController {
     @Query('factoryId') factoryId?: string,
   ) {
     return this.svc.harmonics(scopeOf(user, factoryId), meterId);
+  }
+
+  @Get('power-factor/overview')
+  @ApiOperation({ summary: 'Power factor per board, its tariff exposure, and the capacitor banks' })
+  @ApiQuery({ name: 'days', required: false, example: 30 })
+  @ApiQuery({ name: 'factoryId', required: false })
+  pfOverview(@CurrentUser() user: RequestUser, @Query('days') days?: string, @Query('factoryId') factoryId?: string) {
+    return this.pf.overview(scopeOf(user, factoryId), days ? Number(days) : 30);
+  }
+
+  @Get('power-factor/sizing')
+  @ApiOperation({ summary: 'Compensation needed to reach a target power factor, with payback' })
+  @ApiQuery({ name: 'target', required: false, example: 0.98 })
+  @ApiQuery({ name: 'days', required: false })
+  @ApiQuery({ name: 'factoryId', required: false })
+  pfSizing(
+    @CurrentUser() user: RequestUser,
+    @Query('target') target?: string,
+    @Query('days') days?: string,
+    @Query('factoryId') factoryId?: string,
+  ) {
+    return this.pf.sizing(scopeOf(user, factoryId), target ? Number(target) : 0.98, days ? Number(days) : 30);
   }
 
   @Get('compliance')

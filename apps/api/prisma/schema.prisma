@@ -2000,6 +2000,11 @@ model EnergyReading {
   timestamp         DateTime
   value             Float // cumulative kWh / m³ (delta calculated at aggregation)
   powerKw           Float? // instantaneous power draw at this timestamp
+  /// A power meter reports these alongside energy, and the reactive figure is
+  /// what a low power factor actually costs — leaving them out meant the
+  /// compensation case had to be re-derived from a curve instead of read.
+  powerFactor       Float?
+  reactiveKvar      Float?
   unit              String
   machineState      String? // snapshot: RUNNING | IDLE | BREAKDOWN | PLANNED_STOP
   source            String   @default("AUTO") // AUTO (from IoT), MANUAL

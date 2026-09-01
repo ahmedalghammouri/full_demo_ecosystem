@@ -32,6 +32,7 @@ const prisma = new PrismaClient();
 // ────────────────────────────────────────────────────────────────────────────
 
 const log = (msg: string) => console.log(msg);
+const round2 = (v: number) => Math.round(v * 100) / 100;
 const step = (msg: string) => console.log(`  · ${msg}`);
 
 /** Map a model tag role onto the schema's tagType + counterRole pair. */
@@ -585,6 +586,92 @@ async function seedFactory(enterpriseId: string, f: FactoryDef) {
     else await prisma.alarmDefinition.create({ data: { factoryId: fid, code: a.code, ...data } });
   }
   step(`${f.alarmRules.length} alarm definitions`);
+
+
+  // ── Capacitor banks ─────────────────────────────────────────────────────
+  //
+  // A bank is modelled as a machine so it sits on the asset register and carries
+  // maintenance history like anything else; this adds the electrical detail that
+  // only a capacitor bank has.
+  //
+  // The measured figures are derived from the nameplate and the bank's stated
+  // condition rather than typed in twice. A bank with no detuning reactor lets
+  // harmonic current amplify through the capacitors, so its measured current
+  // runs ABOVE nameplate — that relationship is the whole finding, and hard-
+  // coding both numbers would let them drift apart.
+  let bankCount = 0;
+  for (const m of f.machines) {
+    const meta = (m.metadata ?? {}) as Record<string, unknown>;
+    const ratedKvar = meta.ratedKvar as number | undefined;
+    if (!ratedKvar) continue;
+
+    const machineIdVal = machineId.get(m.code);
+    if (!machineIdVal) continue;
+
+    const stepCount = (meta.steps as number | undefined) ?? 6;
+    const stepKvar = round2(ratedKvar / stepCount);
+    const detuned = (meta.detunedReactor as boolean | undefined) ?? false;
+    const condition = String(meta.condition ?? '');
+    const failed = /failed/i.test(condition);
+    const overloaded = /overload/i.test(condition);
+
+    // Nameplate current for one step at 400 V, three phase: I = kVAr / (√3 · V).
+    const ratedStepCurrent = round2((stepKvar * 1000) / (Math.sqrt(3) * 400));
+    // Without a detuning reactor the harmonic current adds on top; a failed bank
+    // draws nothing at all.
+    const measuredStepCurrent = failed ? 0 : round2(ratedStepCurrent * (detuned ? 1.02 : overloaded ? 1.25 : 1.06));
+    // C = kVAr / (2π f V²), per phase in µF.
+    const ratedCapacitanceUf = round2((stepKvar * 1000) / (2 * Math.PI * 50 * 400 * 400) * 1e6);
+    const measuredCapacitanceUf = failed ? 0 : round2(ratedCapacitanceUf * (overloaded ? 1.01 : 0.98));
+
+    // 0-100, from how far measured current and capacitance sit from nameplate.
+    const healthIndex = failed
+      ? 0
+      : Math.max(0, Math.round(100 - Math.abs(measuredStepCurrent / ratedStepCurrent - 1) * 220));
+
+    const existing = await prisma.capacitorBank.findUnique({ where: { machineId: machineIdVal } });
+    const data = {
+      totalKvar: ratedKvar,
+      stepCount,
+      stepKvar,
+      ratedVoltage: 400,
+      controller: (meta.controller as string) ?? 'Automatic PF controller',
+      pfSetpoint: 0.96,
+      detunedFilter: detuned,
+      detuningPct: detuned ? 7 : null,
+      ratedStepCurrent,
+      measuredStepCurrent,
+      ratedCapacitanceUf,
+      measuredCapacitanceUf,
+      healthIndex,
+    };
+    const bank = existing
+      ? await prisma.capacitorBank.update({ where: { id: existing.id }, data })
+      : await prisma.capacitorBank.create({ data: { factoryId: fid, machineId: machineIdVal, ...data } });
+
+    for (let n = 1; n <= stepCount; n++) {
+      // A failed bank has every step out; a healthy one runs most of them.
+      const state = failed ? 'FAULT' : n <= Math.ceil(stepCount * 0.7) ? 'ON' : 'OFF';
+      const stepData = {
+        kvar: stepKvar,
+        state,
+        // Contactors are life-limited, so switching count is a maintenance
+        // signal rather than a curiosity. Earlier steps switch most.
+        switchingOps: failed ? 0 : Math.round(48_000 / n),
+        runHours: failed ? 0 : Math.round(9_500 / n),
+        capacitanceUf: failed ? 0 : round2(measuredCapacitanceUf * (1 - n * 0.004)),
+        currentA: failed ? 0 : round2(measuredStepCurrent * (1 - n * 0.003)),
+        healthPct: failed ? 0 : Math.max(0, Math.round(healthIndex - n * 1.5)),
+      };
+      await prisma.capacitorStep.upsert({
+        where: { bankId_stepNo: { bankId: bank.id, stepNo: n } },
+        update: stepData,
+        create: { bankId: bank.id, stepNo: n, ...stepData },
+      });
+    }
+    bankCount++;
+  }
+  if (bankCount) step(`${bankCount} capacitor banks with their steps`);
 
   return { fid, machineId, lineId, skuId };
 }
