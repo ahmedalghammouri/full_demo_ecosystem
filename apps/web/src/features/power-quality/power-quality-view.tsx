@@ -137,6 +137,22 @@ export function PowerQualityView() {
     retry: false,
   });
 
+  // No factory in scope. The queries are disabled, so without this the page
+  // would render its full furniture around an empty chart — which reads as
+  // "no events here" when the truth is "you have not said where to look".
+  if (!factoryId) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-16 text-center">
+        <Zap className="mx-auto mb-4 text-muted-foreground" size={32} />
+        <h1 className="text-lg font-semibold">Choose a factory</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Power quality is measured per site. Pick a factory from the map to see its voltage
+          events, harmonics and compliance record.
+        </p>
+      </div>
+    );
+  }
+
   // A 403 here is not a failure — it is the platform correctly saying this
   // factory has no power-quality metering. Say so, rather than drawing an empty
   // chart that reads as "nothing wrong here".

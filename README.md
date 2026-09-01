@@ -27,32 +27,70 @@ picker: choose a site and the navigation adapts to what that site actually has.
 
 ---
 
-## Quick start
+## Running it
+
+There are two modes, and the difference matters: development compiles routes on
+demand (a first page load takes ~30 s), production serves a compiled bundle
+(~0.3 s). Demonstrate from production.
+
+### Production
 
 ```bash
-pnpm install
-docker compose up -d postgres redis
+cp .env.prod.example .env      # then change every secret in it
+docker compose -f docker-compose.yml up -d --build
+```
 
-cd apps/api
-cp .env.example .env            # then set DATABASE_URL to the compose database
-npx prisma migrate deploy
-npx tsx prisma/seed.ts
+First boot takes two to three minutes: the API applies migrations, seeds the
+master data, then generates roughly 409,000 measured minutes of history. Watch
+it with `docker compose logs -f api`. Both seeds are idempotent, so a restart
+converges rather than duplicating.
+
+### Development
+
+```bash
+docker compose up -d           # picks up docker-compose.override.yml automatically
+```
+
+The override swaps both apps to their development targets, mounts the source and
+runs the watchers. It is loaded with no flag, which is why the *base* file is the
+production one: compose merges `volumes` across files rather than replacing them,
+so a production overlay on a development base could never remove the source
+mount that shadows the built bundle.
+
+### Deploying behind Traefik
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.traefik.yml   -p i360 up -d --build
+```
+
+Routes `i360.industry360.cloud` through the Traefik already running on the host.
+Set `BIND_ADDR=127.0.0.1` in `.env` first — Traefik dials the container directly
+over the compose network, so nothing needs a published port, and that one line
+keeps the database, cache, broker and object store off the public interface.
+
+Verify after deploying; every line must show a `127.0.0.1` binding:
+
+```bash
+docker compose -p i360 ps --format '{{.Name}}	{{.Ports}}'
 ```
 
 | Service | URL |
 |---|---|
-| **The application** | **http://localhost:8080** |
-| API docs (Swagger) | http://localhost:3001/api/v1/docs |
-| Grafana | http://localhost:3003 |
-| Prometheus | http://localhost:9090 |
-| MinIO console | http://localhost:9001 |
+| **The application** | **http://localhost:8100** |
+| API docs (Swagger) | http://localhost:4100/api/v1/docs |
+| Grafana | http://localhost:3103 |
+| Prometheus | http://localhost:9091 |
+| MinIO console | http://localhost:9011 |
 
-**Open the app on port 8080, not 3000.** Nginx is the single entry point: it
-serves the Next app at `/` and proxies `/api/` and `/socket.io/` to the API. The
-browser client deliberately calls **same-origin** so the app works unchanged from
-any device on the network — a hard-coded `localhost` would resolve to the
-visitor's own machine, not the server. Port 3000 is the Next server sitting
-behind nginx; hitting it directly gives you the page but 404s every API call.
+**Open the app on the nginx port, not the Next port.** Nginx is the entry point:
+it serves the app at `/` and proxies `/api/` and `/socket.io/` to the API. The
+browser client calls **same-origin** so the app works unchanged from any device
+on the network — a hard-coded `localhost` would resolve to the visitor's own
+machine. The Next server also proxies `/api` itself, so hitting it directly
+works too; it is simply not the intended door.
+
+Default host ports sit clear of anything else on the box and every one of them
+is configurable in `.env`.
 
 ### Sign in
 

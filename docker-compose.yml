@@ -5,6 +5,9 @@ networks:
     driver: bridge
 
 volumes:
+  api-logs:
+  api-uploads:
+  api-backups:
   postgres-data:
   redis-data:
   influxdb-data:
@@ -128,8 +131,8 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-      target: development
-    image: i360-api:dev
+      target: production
+    image: i360-api:latest
     container_name: i360-api
     restart: unless-stopped
     environment:
@@ -163,9 +166,11 @@ services:
       JWT_REFRESH_EXPIRES_IN: 30d
       CORS_ORIGINS: http://localhost:3000,http://localhost:8080,http://web:3000
     volumes:
-      - ./apps/api:/app
-      - /app/node_modules
-      - ./apps/api/logs:/app/logs
+      # Writable paths only. The source is baked into the image; bind-mounting it
+      # would shadow the build and drag the host's node_modules in with it.
+      - api-logs:/app/logs
+      - api-uploads:/app/uploads
+      - api-backups:/app/backups
     ports:
       - "${BIND_ADDR:-0.0.0.0}:${API_PORT_HOST:-4100}:3001"
     networks:
@@ -184,33 +189,45 @@ services:
     # its shape and P3005 then blocks every later `migrate deploy`.
     #
     # The seed is idempotent, so a restart converges instead of duplicating.
+    # Migrate, seed, then serve the compiled bundle. Both seeds are idempotent,
+    # so a restart converges instead of duplicating, and a fresh host comes up
+    # with populated screens rather than every KPI reading "—".
     command: >
-      sh -c "npx prisma migrate deploy &&
-             npx tsx prisma/seed.ts &&
-             npx tsx prisma/seed-history.ts &&
-             pnpm start:dev"
+      sh -c "node node_modules/prisma/build/index.js migrate deploy &&
+             node node_modules/tsx/dist/cli.mjs prisma/seed.ts &&
+             node node_modules/tsx/dist/cli.mjs prisma/seed-history.ts &&
+             node dist/main.js"
 
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-      target: development
-    image: i360-web:dev
+      target: production
+      args:
+        # Baked into the client bundle at build time; setting them at runtime
+        # does nothing. Empty means same-origin, which is what lets one image
+        # serve any hostname without a rebuild.
+        NEXT_PUBLIC_API_URL: ""
+        NEXT_PUBLIC_WS_URL: ""
+    image: i360-web:latest
     container_name: i360-web
     restart: unless-stopped
     environment:
+      # Next's standalone server listens on $HOSTNAME, and Docker sets that to
+      # the container id. Left alone it binds only the container's own address:
+      # nginx still reaches it, but the loopback healthcheck never does, so a
+      # perfectly healthy container reports unhealthy and gets restarted.
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
       NEXT_PUBLIC_API_URL: http://localhost:8080
       NEXT_PUBLIC_WS_URL: ws://localhost:8080
       NEXT_PUBLIC_APP_URL: http://localhost:8080
       # Where the Next server forwards /api and /socket.io when it is reached
       # directly on its own port instead of through nginx.
       API_PROXY_TARGET: http://api:3001
-    volumes:
-      - ./apps/web:/app
-      - /app/node_modules
-      - /app/.next
     ports:
-      - "${BIND_ADDR:-0.0.0.0}:${WEB_PORT:-3100}:4000"
+      # The standalone server listens on 3000, not the dev server's 4000.
+      - "${BIND_ADDR:-0.0.0.0}:${WEB_PORT:-3100}:3000"
     networks:
       - i360-network
     depends_on:

@@ -1,0 +1,56 @@
+# ══════════════════════════════════════════════════════════════════
+#  Development overrides — loaded automatically.
+#
+#    docker compose up -d          → base + THIS file (development)
+#    docker compose -f docker-compose.yml up -d
+#                                  → base only (production)
+#
+#  `docker compose` picks up docker-compose.override.yml with no flag, so
+#  local work gets hot reload for free while the base file stays the
+#  thing that actually ships.
+#
+#  This split exists because compose MERGES `volumes` and `ports` across
+#  files rather than replacing them: an overlay can add a bind mount but
+#  can never take one away. A production overlay on a development base is
+#  therefore impossible — the source mount would survive and shadow the
+#  built bundle. The base has to be production, and development has to be
+#  the override.
+# ══════════════════════════════════════════════════════════════════
+
+services:
+  api:
+    build:
+      target: development
+    image: i360-api:dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      # Live source, so `nest --watch` recompiles on save. The anonymous
+      # volume on node_modules keeps the container's own dependencies —
+      # without it the host's tree shadows them and the native Prisma
+      # engine binary is the wrong platform.
+      - ./apps/api:/app
+      - /app/node_modules
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             npx tsx prisma/seed.ts &&
+             npx tsx prisma/seed-history.ts &&
+             pnpm start:dev"
+
+  web:
+    build:
+      target: development
+    image: i360-web:dev
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      # .next is a build artefact, not source. An anonymous volume keeps the
+      # container's own compiled output instead of letting a stale host one in.
+      - /app/.next
+    # The dev server is told to listen on 3000, the same port the standalone
+    # production server uses. That keeps ONE nginx upstream (`web:3000`) valid
+    # in both modes — the alternative is templating nginx.conf through envsubst
+    # to swap a single digit, which is a lot of machinery for no gain.
+    command: pnpm exec next dev --turbopack -p 3000

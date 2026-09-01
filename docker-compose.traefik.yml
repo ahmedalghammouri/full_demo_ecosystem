@@ -61,9 +61,9 @@ services:
       - "traefik.http.routers.i360.entrypoints=websecure"
       - "traefik.http.routers.i360.tls.certresolver=letsencrypt"
 
-      # The port INSIDE the container. Next listens on 4000 here; this is
+      # The port INSIDE the container. The standalone Next server listens on 3000;
       # unrelated to WEB_PORT, which is only the host-side binding.
-      - "traefik.http.services.i360.loadbalancer.server.port=4000"
+      - "traefik.http.services.i360.loadbalancer.server.port=3000"
 
       # Websockets. The live feed is Socket.IO, and without the upgrade
       # headers surviving the proxy it silently degrades to HTTP polling —
