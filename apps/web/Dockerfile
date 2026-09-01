@@ -31,6 +31,17 @@ ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_WS_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
+# Where next.config.ts sends /api and /socket.io when the Next server is reached
+# directly instead of through nginx.
+#
+# This has to be a BUILD arg, not a runtime env var: Next evaluates rewrites()
+# once and bakes the resolved destination into routes-manifest.json. Setting it
+# at runtime does nothing, and the default `localhost:3001` then points at
+# nothing inside the container — a 500 on every /api call to the Next port while
+# the same call through nginx works perfectly.
+ARG API_PROXY_TARGET=http://api:3001
+ENV API_PROXY_TARGET=$API_PROXY_TARGET
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 

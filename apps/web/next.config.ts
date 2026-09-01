@@ -25,8 +25,13 @@ const nextConfig: NextConfig = {
   // the page rendered and every number came back empty, which looks exactly like
   // a broken database and is the worst possible thing to debug live.
   //
-  // Proxying here means :3000 and :8080 both work. Nginx stays the production
-  // entry point; this is what stops a wrong port from looking like missing data.
+  // Proxying here means both ports work. Nginx stays the production entry point;
+  // this is what stops a wrong port from looking like missing data.
+  //
+  // API_PROXY_TARGET is read ONCE, at build time: Next resolves rewrites() and
+  // bakes the destination into routes-manifest.json. It must therefore be a
+  // Docker build arg — setting it at runtime changes nothing, and the fallback
+  // below then points at nothing inside the container.
   async rewrites() {
     const target = process.env.API_PROXY_TARGET || 'http://localhost:3001';
     return [

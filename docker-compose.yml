@@ -209,6 +209,9 @@ services:
         # serve any hostname without a rebuild.
         NEXT_PUBLIC_API_URL: ""
         NEXT_PUBLIC_WS_URL: ""
+        # Baked into routes-manifest.json — see the Dockerfile. Setting it only
+        # in `environment:` leaves the built manifest pointing at localhost.
+        API_PROXY_TARGET: http://api:3001
     image: i360-web:latest
     container_name: i360-web
     restart: unless-stopped
