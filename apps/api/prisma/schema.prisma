@@ -119,6 +119,10 @@ model Factory {
   spareParts             SparePart[]
   manufacturingProcesses ManufacturingProcess[]
   energyMeters           EnergyMeter[]
+  pqEvents               PqEvent[]
+  harmonicSnapshots      HarmonicSnapshot[]
+  capacitorBanks         CapacitorBank[]
+  en50160Assessments     En50160Assessment[]
   energyReadings         EnergyReading[]
   energySummaries        EnergySummary[]
   energyTariffs          EnergyTariff[]
@@ -313,6 +317,8 @@ model Machine {
   tagDefinitions      TagDefinition[]
   alarmEvents         AlarmEvent[]
   energyMeters        EnergyMeter[]
+  pqEvents            PqEvent[]
+  capacitorBank       CapacitorBank?
   energyTariffs       EnergyTariff[]
   energyWOMachineKpis EnergyWOMachineKpi[]
   routingSteps        RoutingStep[]
@@ -1963,6 +1969,9 @@ model EnergyMeter {
   device    Device?         @relation(fields: [deviceId], references: [id])
   tags      TagDefinition[]
   readings  EnergyReading[]
+  pqEvents          PqEvent[]
+  harmonicSnapshots HarmonicSnapshot[]
+  en50160           En50160Assessment[]
   summaries EnergySummary[]
 
   @@unique([factoryId, meterNumber])
@@ -4449,4 +4458,195 @@ model CountAdjustment {
   @@index([jobOrderId])
   @@index([machineId, at])
   @@map("count_adjustments")
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+//  POWER QUALITY
+//
+//  Present only for factories whose classification declares the power-quality
+//  capability. Everything here hangs off EnergyMeter, which already carries the
+//  electrical tags, so a distribution board is one asset with one meter rather
+//  than a parallel hierarchy.
+// ══════════════════════════════════════════════════════════════════════════
+
+enum PqEventType {
+  SAG // dip, below 90% of nominal
+  SWELL // above 110% of nominal
+  INTERRUPTION // below 10% of nominal
+  TRANSIENT
+  HARMONIC_EXCURSION
+  UNBALANCE
+  FREQUENCY_DEVIATION
+  FLICKER
+}
+
+enum PqSeverity {
+  CRITICAL
+  MAJOR
+  MINOR
+  INFO
+}
+
+/// Where the event falls on the ITIC/CBEMA ride-through curve. NO_INTERRUPTION
+/// means equipment should have ridden it out; PROHIBITED means damage is
+/// expected. The zone is what turns a list of dips into an engineering finding.
+enum IticZone {
+  NO_INTERRUPTION
+  NO_DAMAGE
+  PROHIBITED
+}
+
+model PqEvent {
+  id        String      @id @default(uuid())
+  factoryId String
+  meterId   String
+  machineId String?
+
+  type     PqEventType
+  severity PqSeverity
+
+  startedAt  DateTime
+  endedAt    DateTime?
+  durationMs Int
+
+  /// Residual voltage as % of nominal for a sag or swell, or the deviating value.
+  magnitudePct Float
+  phase        String? // "A" | "B" | "C" | "ABC"
+  nominalV     Float
+  minV         Float?
+  maxV         Float?
+  iticZone     IticZone?
+
+  /// The standard the event is judged against.
+  standard String @default("EN 50160")
+
+  /// Set when the correlation engine links the event to a production loss.
+  causedScrap Boolean @default(false)
+  notes       String?
+
+  createdAt DateTime @default(now())
+
+  factory Factory     @relation(fields: [factoryId], references: [id])
+  meter   EnergyMeter @relation(fields: [meterId], references: [id], onDelete: Cascade)
+  machine Machine?    @relation(fields: [machineId], references: [id])
+
+  @@index([factoryId, startedAt(sort: Desc)])
+  @@index([meterId, startedAt(sort: Desc)])
+  @@map("pq_events")
+}
+
+model HarmonicSnapshot {
+  id        String   @id @default(uuid())
+  factoryId String
+  meterId   String
+  time      DateTime
+  phase     String // "A" | "B" | "C"
+
+  /// Voltage harmonics H2..H25 as % of fundamental; index 0 is H2.
+  vHarmonics Float[]
+  /// Current harmonics H2..H25 as % of fundamental.
+  iHarmonics Float[]
+
+  vThd Float
+  iThd Float
+  /// Total demand distortion — the IEEE 519 metric, which unlike THD is
+  /// referenced to peak demand rather than to the present fundamental.
+  tdd Float?
+
+  factory Factory     @relation(fields: [factoryId], references: [id])
+  meter   EnergyMeter @relation(fields: [meterId], references: [id], onDelete: Cascade)
+
+  @@index([meterId, time(sort: Desc)])
+  @@map("harmonic_snapshots")
+}
+
+model CapacitorBank {
+  id        String @id @default(uuid())
+  factoryId String
+  /// The bank is modelled as a machine so it appears on the asset register and
+  /// carries maintenance history like any other asset.
+  machineId String @unique
+
+  totalKvar    Float
+  stepCount    Int
+  stepKvar     Float
+  ratedVoltage Float   @default(400)
+  controller   String?
+  pfSetpoint   Float   @default(0.96)
+  ctRatio      String?
+
+  /// A bank supplied without a detuned reactor lets harmonic current amplify
+  /// through the capacitors, which is what drives measured current above
+  /// nameplate and shortens the bank's life.
+  detunedFilter Boolean @default(false)
+  detuningPct   Float?
+
+  ratedStepCurrent      Float?
+  measuredStepCurrent   Float?
+  ratedCapacitanceUf    Float?
+  measuredCapacitanceUf Float?
+
+  /// 0-100 composite, from measured current, capacitance drift and THD.
+  healthIndex   Float     @default(100)
+  lastServiceAt DateTime?
+  nextServiceAt DateTime?
+
+  factory Factory         @relation(fields: [factoryId], references: [id])
+  machine Machine         @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  steps   CapacitorStep[]
+
+  @@map("capacitor_banks")
+}
+
+model CapacitorStep {
+  id     String @id @default(uuid())
+  bankId String
+  stepNo Int
+  kvar   Float
+  state  String @default("OFF") // OFF | ON | FAULT
+
+  /// Capacitor contactors are life-limited, so switching count is a real
+  /// maintenance signal rather than a curiosity.
+  switchingOps Int   @default(0)
+  runHours     Float @default(0)
+
+  capacitanceUf Float?
+  currentA      Float?
+  healthPct     Float  @default(100)
+
+  bank CapacitorBank @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@unique([bankId, stepNo])
+  @@map("capacitor_steps")
+}
+
+model En50160Assessment {
+  id        String   @id @default(uuid())
+  factoryId String
+  meterId   String
+  weekStart DateTime
+  weekEnd   DateTime
+  nominalV  Float    @default(230)
+
+  freqCompliance      Float
+  voltageCompliance   Float
+  unbalanceCompliance Float
+  flickerCompliance   Float?
+
+  thdA Float
+  thdB Float
+  thdC Float
+
+  /// Per-harmonic 95% values keyed "H02".."H25", each { a, b, c, limit, pass }.
+  harmonicResults Json
+  overallPass     Boolean
+  failedItems     String[]
+
+  createdAt DateTime @default(now())
+
+  factory Factory     @relation(fields: [factoryId], references: [id])
+  meter   EnergyMeter @relation(fields: [meterId], references: [id], onDelete: Cascade)
+
+  @@index([meterId, weekStart(sort: Desc)])
+  @@map("en50160_assessments")
 }

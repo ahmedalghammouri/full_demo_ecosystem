@@ -39,6 +39,7 @@ import {
   lineConstraint, qualityRateAt, scrapCount, processStress, machineHealth,
   pickDowntimeReason, tagValue, meterLoadKw, qualityResult, pickScrapCode,
   rand, round, clamp, startOfDay, lotFor, serialFor,
+  pqEventsInWindow, harmonicSpectrum, meterVoltageThd, meterCurrentThd,
 } from './plant/signal-engine';
 
 const prisma = new PrismaClient();
@@ -527,6 +528,124 @@ async function seedFactoryHistory(f: FactoryDef, now: Date) {
   await insertMany('alarmEvent', alarmRows, (b) => prisma.alarmEvent.createMany({ data: b, skipDuplicates: true }));
   step(`${alarmRows.length.toLocaleString()} alarm events`);
 
+
+  // ── Power quality ───────────────────────────────────────────────────────
+  //
+  // Only for a site whose classification declares it. A factory without the
+  // capability gets no rows at all rather than empty ones, so a screen that
+  // should not exist cannot be reached and then found blank.
+  let pqCount = 0, harmCount = 0, enCount = 0;
+  if (caps.includes('POWER_QUALITY') || caps.includes('HARMONICS')) {
+    const electrical = f.energyMeters.filter((m) => m.type === 'ELECTRICAL' && m.baselineKw);
+
+    // Voltage events, judged against the ITIC ride-through envelope.
+    const pqRows: Prisma.PqEventCreateManyInput[] = [];
+    for (const meter of electrical) {
+      const id = ctx.meterId.get(meter.code);
+      if (!id) continue;
+      for (const e of pqEventsInWindow(f, meter.code, from.getTime(), now.getTime())) {
+        pqRows.push({
+          factoryId: ctx.factoryId,
+          meterId: id,
+          machineId: meter.machineCode ? ctx.machineId.get(meter.machineCode) ?? null : null,
+          type: e.type as any,
+          severity: e.severity as any,
+          startedAt: e.startedAt,
+          endedAt: new Date(e.startedAt.getTime() + e.durationMs),
+          durationMs: e.durationMs,
+          magnitudePct: e.magnitudePct,
+          phase: e.phase,
+          nominalV: e.nominalV,
+          minV: e.minV,
+          maxV: e.maxV,
+          iticZone: e.iticZone as any,
+          standard: 'EN 50160',
+          // A deep event on a running line is what actually costs product.
+          causedScrap: e.iticZone !== 'NO_INTERRUPTION' && isScheduled(f, e.startedAt),
+        });
+      }
+    }
+    await insertMany('pqEvent', pqRows, (b) => prisma.pqEvent.createMany({ data: b, skipDuplicates: true }));
+    pqCount = pqRows.length;
+
+    // Harmonic spectra, one snapshot per phase every 15 minutes.
+    const harmRows: Prisma.HarmonicSnapshotCreateManyInput[] = [];
+    for (const meter of electrical) {
+      const id = ctx.meterId.get(meter.code);
+      if (!id) continue;
+      for (let t = from.getTime(); t < now.getTime(); t += 15 * MINUTE) {
+        for (const phase of ['A', 'B', 'C'] as const) {
+          const h = harmonicSpectrum(f, meter.code, t, phase);
+          harmRows.push({
+            factoryId: ctx.factoryId,
+            meterId: id,
+            time: new Date(t),
+            phase,
+            vHarmonics: h.vHarmonics,
+            iHarmonics: h.iHarmonics,
+            vThd: h.vThd,
+            iThd: h.iThd,
+            tdd: h.tdd,
+          });
+        }
+      }
+    }
+    await insertMany('harmonicSnapshot', harmRows, (b) => prisma.harmonicSnapshot.createMany({ data: b, skipDuplicates: true }));
+    harmCount = harmRows.length;
+
+    // Weekly EN 50160 assessment — the structure a consultant already reports in.
+    const enRows: Prisma.En50160AssessmentCreateManyInput[] = [];
+    for (const meter of electrical) {
+      const id = ctx.meterId.get(meter.code);
+      if (!id) continue;
+      for (let w = new Date(from); w < now; w = new Date(w.getTime() + 7 * DAY)) {
+        const weekEnd = new Date(Math.min(w.getTime() + 7 * DAY, now.getTime()));
+        const mid = w.getTime() + 3.5 * DAY;
+        const thdA = meterVoltageThd(f, meter.code, mid);
+        const thdB = round(thdA * (1 + 0.06 * (rand(`thdB:${meter.code}`, w.getTime()) - 0.5)), 2);
+        const thdC = round(thdA * (1 + 0.06 * (rand(`thdC:${meter.code}`, w.getTime()) - 0.5)), 2);
+
+        // EN 50160 judges the 95% value of 10-minute windows, so a board can sit
+        // above the limit for hours and still pass the week — which is exactly
+        // the nuance a raw THD trend hides.
+        const worst = Math.max(thdA, thdB, thdC);
+        const voltageCompliance = round(clamp(100 - Math.max(0, worst - 5) * 6, 82, 100), 1);
+        const spectrum = harmonicSpectrum(f, meter.code, mid, 'A');
+        const harmonicResults: Record<string, unknown> = {};
+        const limits: Record<number, number> = { 3: 5, 5: 6, 7: 5, 9: 1.5, 11: 3.5, 13: 3, 15: 0.5, 17: 2, 19: 1.5, 21: 0.5, 23: 1.5, 25: 1.5 };
+        const failed: string[] = [];
+        for (let h = 2; h <= 25; h++) {
+          const v = spectrum.vHarmonics[h - 2] ?? 0;
+          const limit = limits[h] ?? 0.5;
+          const pass = v <= limit;
+          const key = `H${String(h).padStart(2, '0')}`;
+          harmonicResults[key] = { a: v, b: round(v * 1.02, 3), c: round(v * 0.98, 3), limit, pass };
+          if (!pass) failed.push(key);
+        }
+        if (worst > 8) failed.push('THD');
+
+        enRows.push({
+          factoryId: ctx.factoryId,
+          meterId: id,
+          weekStart: new Date(w),
+          weekEnd,
+          nominalV: 230,
+          freqCompliance: 100,
+          voltageCompliance,
+          unbalanceCompliance: round(clamp(99.6 - rand(`unb:${meter.code}`, w.getTime()) * 2.2, 95, 100), 1),
+          flickerCompliance: round(clamp(99 - rand(`flk:${meter.code}`, w.getTime()) * 3, 93, 100), 1),
+          thdA, thdB, thdC,
+          harmonicResults: harmonicResults as Prisma.InputJsonValue,
+          overallPass: failed.length === 0,
+          failedItems: failed,
+        });
+      }
+    }
+    await insertMany('en50160', enRows, (b) => prisma.en50160Assessment.createMany({ data: b, skipDuplicates: true }));
+    enCount = enRows.length;
+    step(`${pqCount} PQ events · ${harmCount.toLocaleString()} harmonic snapshots · ${enCount} EN 50160 weeks`);
+  }
+
   // ── SPC measurements ────────────────────────────────────────────────────
   //
   // Drawn through the same process-stress term that decides scrap, so a drifting
@@ -569,6 +688,8 @@ async function seedFactoryHistory(f: FactoryDef, now: Date) {
     energy: energyRows.length,
     alarms: alarmRows.length,
     spc: spcRows.length,
+    pq: pqCount,
+    harmonics: harmCount,
   };
 }
 
@@ -591,6 +712,9 @@ async function main() {
     log('\n  Dropping existing history…');
     // Order matters: children before parents.
     await prisma.oeeMinute.deleteMany({});
+    await prisma.pqEvent.deleteMany({});
+    await prisma.harmonicSnapshot.deleteMany({});
+    await prisma.en50160Assessment.deleteMany({});
     await prisma.sPCMeasurement.deleteMany({});
     await prisma.alarmEvent.deleteMany({});
     await prisma.energyReading.deleteMany({});

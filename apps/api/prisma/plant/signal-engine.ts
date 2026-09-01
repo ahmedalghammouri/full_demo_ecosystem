@@ -820,3 +820,175 @@ export function lotFor(factoryCode: string, productCode: string, when: Date, ind
   const d = String(when.getDate()).padStart(2, '0');
   return `${factoryCode}-${productCode}-${y}${m}${d}-${String(index).padStart(3, '0')}`;
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// Power quality
+//
+// Present only for factories whose classification declares it. Everything here
+// is derived from the same load curve the energy screens draw, so a sag and the
+// demand dip around it are one event rather than two unrelated stories.
+// ────────────────────────────────────────────────────────────────────────────
+
+export type PqEventType =
+  | 'SAG' | 'SWELL' | 'INTERRUPTION' | 'TRANSIENT'
+  | 'HARMONIC_EXCURSION' | 'UNBALANCE' | 'FREQUENCY_DEVIATION' | 'FLICKER';
+
+export interface PqEventGen {
+  type: PqEventType;
+  severity: 'CRITICAL' | 'MAJOR' | 'MINOR' | 'INFO';
+  startedAt: Date;
+  durationMs: number;
+  magnitudePct: number;
+  phase: string;
+  nominalV: number;
+  minV: number;
+  maxV: number;
+  iticZone: 'NO_INTERRUPTION' | 'NO_DAMAGE' | 'PROHIBITED';
+}
+
+/**
+ * Where a voltage event falls on the ITIC/CBEMA ride-through envelope.
+ *
+ * The curve is what turns a list of dips into an engineering finding: a 70%
+ * residual for 20 ms is something every piece of equipment must ride through,
+ * and the same 70% for two seconds is not. Encoding the boundary here means the
+ * scatter plot and the severity column can never disagree.
+ */
+export function iticZoneFor(magnitudePct: number, durationMs: number):
+  'NO_INTERRUPTION' | 'NO_DAMAGE' | 'PROHIBITED' {
+  // Above nominal — the prohibited region.
+  if (magnitudePct > 110) {
+    if (durationMs <= 1) return 'NO_INTERRUPTION';
+    if (magnitudePct > 140 && durationMs > 3) return 'PROHIBITED';
+    if (magnitudePct > 120 && durationMs > 500) return 'PROHIBITED';
+    return 'NO_DAMAGE';
+  }
+  // Below nominal — the ride-through region.
+  if (magnitudePct >= 90) return 'NO_INTERRUPTION';
+  if (durationMs <= 20) return 'NO_INTERRUPTION';
+  if (magnitudePct >= 80 && durationMs <= 500) return 'NO_INTERRUPTION';
+  if (magnitudePct >= 70 && durationMs <= 500) return 'NO_DAMAGE';
+  if (magnitudePct >= 40 && durationMs <= 200) return 'NO_DAMAGE';
+  return 'NO_DAMAGE';
+}
+
+/**
+ * Voltage events on a meter over a window.
+ *
+ * Rate and depth follow the board's own condition: the board modelled with an
+ * ineffective capacitor bank and the highest distortion also sees the most
+ * events, because weak compensation and a stiff-enough source are the same
+ * physical story told twice.
+ */
+export function pqEventsInWindow(
+  f: FactoryDef,
+  meterCode: string,
+  from: number,
+  to: number,
+): PqEventGen[] {
+  const meter = f.energyMeters.find((m) => m.code === meterCode);
+  if (!meter?.baselineKw) return [];
+
+  const impaired = f.code === 'RMTC' && (meter.code === 'EM-MDP1' || meter.code === 'EM-MDP3');
+  // Events per day. A healthy 400 V board on a strong grid sees a handful a
+  // month; an impaired one sees several a week.
+  const perDay = impaired ? 1.6 : 0.45;
+  const out: PqEventGen[] = [];
+
+  for (let t = Math.floor(from / HOUR) * HOUR; t < to; t += HOUR) {
+    const p = perDay / 24;
+    if (rand(`pq:${f.code}:${meterCode}`, Math.floor(t / HOUR)) > p) continue;
+
+    const key = `pqe:${meterCode}:${Math.floor(t / HOUR)}`;
+    const r = rand(key, 1);
+    const r2 = rand(key, 2);
+    const r3 = rand(key, 3);
+
+    // Sags dominate in any real survey; swells and interruptions are rare.
+    const type: PqEventType = r < 0.80 ? 'SAG' : r < 0.93 ? 'SWELL' : 'INTERRUPTION';
+
+    let magnitudePct: number;
+    let durationMs: number;
+    if (type === 'SAG') {
+      // Most sags are shallow and short — motor starts and remote faults.
+      magnitudePct = round(88 - r2 * (impaired ? 38 : 22), 1);
+      durationMs = Math.round(20 + r3 ** 2 * (impaired ? 2200 : 700));
+    } else if (type === 'SWELL') {
+      magnitudePct = round(111 + r2 * 14, 1);
+      durationMs = Math.round(20 + r3 * 400);
+    } else {
+      magnitudePct = round(r2 * 9, 1);
+      durationMs = Math.round(60 + r3 * 3000);
+    }
+
+    const zone = iticZoneFor(magnitudePct, durationMs);
+    const severity =
+      zone === 'PROHIBITED' ? 'CRITICAL'
+      : type === 'INTERRUPTION' ? 'CRITICAL'
+      : zone === 'NO_DAMAGE' ? 'MAJOR'
+      : magnitudePct < 85 ? 'MINOR' : 'INFO';
+
+    const nominalV = 400;
+    const startedAt = new Date(t + Math.floor(rand(key, 4) * HOUR));
+    const phase = ['A', 'B', 'C', 'ABC'][Math.floor(rand(key, 5) * 4)];
+
+    out.push({
+      type, severity, startedAt, durationMs, magnitudePct, phase, nominalV,
+      minV: round(nominalV * Math.min(magnitudePct, 100) / 100, 1),
+      maxV: round(nominalV * Math.max(magnitudePct, 100) / 100, 1),
+      iticZone: zone,
+    });
+  }
+  return out.sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime());
+}
+
+/**
+ * Harmonic spectrum H2..H25 for a meter, as % of fundamental.
+ *
+ * Odd non-triplen harmonics dominate because six-pulse drives are what actually
+ * sits on these boards: the 5th and 7th carry most of the distortion, the 11th
+ * and 13th follow, and even orders are near zero. A spectrum that decays
+ * smoothly across every order would be a plot of noise, not of a plant.
+ */
+export function harmonicSpectrum(
+  f: FactoryDef,
+  meterCode: string,
+  t: Date | number,
+  phase: 'A' | 'B' | 'C',
+): { vHarmonics: number[]; iHarmonics: number[]; vThd: number; iThd: number; tdd: number } {
+  const ms = new Date(t).getTime();
+  const vThd = meterVoltageThd(f, meterCode, ms);
+  const iThd = meterCurrentThd(f, meterCode, ms);
+  const bucket = Math.floor(ms / (15 * MINUTE));
+
+  // Relative weight of each order, H2..H25.
+  const weight = (h: number) => {
+    if (h % 2 === 0) return 0.05;          // even orders: near zero
+    if (h % 3 === 0) return 0.12;          // triplen: mostly cancelled in a delta
+    if (h === 5) return 1.0;
+    if (h === 7) return 0.62;
+    if (h === 11) return 0.34;
+    if (h === 13) return 0.24;
+    if (h === 17) return 0.13;
+    if (h === 19) return 0.10;
+    return 0.06;
+  };
+
+  const orders: number[] = [];
+  for (let h = 2; h <= 25; h++) orders.push(h);
+
+  const shape = orders.map((h) => weight(h) * (1 + 0.18 * noise(`h:${meterCode}:${h}:${phase}`, bucket)));
+  // Scale the spectrum so its RSS equals the THD the trend screens already show.
+  const rss = Math.sqrt(shape.reduce((n, x) => n + x * x, 0)) || 1;
+
+  const vHarmonics = shape.map((x) => round(Math.max(0, (x / rss) * vThd), 3));
+  const iHarmonics = shape.map((x) => round(Math.max(0, (x / rss) * iThd), 3));
+
+  const meter = f.energyMeters.find((m) => m.code === meterCode);
+  const load = meter?.baselineKw ? clamp(meterLoadKw(f, meterCode, ms) / meter.baselineKw, 0.05, 1.2) : 0.6;
+  // TDD references peak demand rather than the present fundamental, which is
+  // why a lightly loaded feeder can show an alarming THD and a modest TDD.
+  const tdd = round(iThd * load, 2);
+
+  return { vHarmonics, iHarmonics, vThd, iThd, tdd };
+}
