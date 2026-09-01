@@ -163,7 +163,7 @@ async function seedFactory(enterpriseId: string, f: FactoryDef) {
         downtimeThreshold: m.downtimeThreshold ?? 60,
         installDate: m.installDate ? new Date(m.installDate) : null,
         isActive: true,
-        metadata: { ...(m.metadata ?? {}), countUnit: m.countUnit, idealCycleSeconds: m.idealCycleSeconds, grid: m.grid } as Prisma.InputJsonValue,
+        metadata: { ...(m.metadata ?? {}), countUnit: m.countUnit, idealCycleSeconds: m.idealCycleSeconds, grid: m.grid, electrical: m.electrical } as Prisma.InputJsonValue,
       },
       create: {
         factoryId: fid, areaId: areaId.get(m.areaCode), lineId: m.lineCode ? lineId.get(m.lineCode) : null,
@@ -173,7 +173,7 @@ async function seedFactory(enterpriseId: string, f: FactoryDef) {
         criticality: m.criticality as any, designCapacity: m.designCapacity,
         downtimeThreshold: m.downtimeThreshold ?? 60,
         installDate: m.installDate ? new Date(m.installDate) : null,
-        metadata: { ...(m.metadata ?? {}), countUnit: m.countUnit, idealCycleSeconds: m.idealCycleSeconds, grid: m.grid } as Prisma.InputJsonValue,
+        metadata: { ...(m.metadata ?? {}), countUnit: m.countUnit, idealCycleSeconds: m.idealCycleSeconds, grid: m.grid, electrical: m.electrical } as Prisma.InputJsonValue,
       },
     });
     machineId.set(m.code, row.id);

@@ -496,3 +496,10 @@
    plots are routinely circulated in black and white. */
 :root { --pq-ok: #1F7A5A; --pq-warn: #B5842A; --pq-crit: #A8382F; }
 .dark { --pq-ok: #4FA97E; --pq-warn: #D4A64A; --pq-crit: #E0736A; }
+
+/* Single line diagram — voltage level and unmetered nodes.
+   Voltage level is an identity, not a magnitude, so it gets two fixed hues that
+   never encode anything else on this page. Loading reuses the power-quality
+   status scale, because "how loaded" is the same ordered question there. */
+:root { --sld-mv: #7C5BC4; --sld-lv: #3D8FBF; --sld-unmetered: #8A9A94; }
+.dark { --sld-mv: #A88FE0; --sld-lv: #6FB6DE; --sld-unmetered: #6B7A75; }

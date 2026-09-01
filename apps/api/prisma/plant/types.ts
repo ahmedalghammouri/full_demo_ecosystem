@@ -199,6 +199,22 @@ export interface MachineDef {
    * validator says so rather than letting them overlap on screen.
    */
   grid?: { x: number; y: number; w: number; h: number };
+  /**
+   * Where this asset sits on the single line diagram.
+   *
+   * Present only for a factory that declares SINGLE_LINE_DIAGRAM. `parent` is
+   * the code of the asset immediately upstream, so the whole topology is one
+   * field per node rather than a separate edge list that can disagree with it.
+   */
+  electrical?: {
+    voltageLevel: 'MV' | 'LV';
+    /** Code of the upstream asset. Omitted only by the utility incomer. */
+    parent?: string;
+    ratedKva?: number;
+    ratedKw?: number;
+    /** The meter whose live values ride on this node, if any. */
+    meterCode?: string;
+  };
   /** Free-form, surfaced on the asset screen. */
   metadata?: Record<string, unknown>;
 }

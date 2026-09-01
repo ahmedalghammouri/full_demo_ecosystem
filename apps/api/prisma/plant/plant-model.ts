@@ -355,6 +355,51 @@ export function validatePlantModel(): ValidationIssue[] {
       }
     }
 
+    // The single line diagram is a tree. A dangling parent draws a node with no
+    // supply, a cycle hangs the layout, and two roots mean the site has two
+    // incomers — all three are survey errors, and all three are invisible until
+    // someone opens the drawing.
+    if (caps.includes('SINGLE_LINE_DIAGRAM')) {
+      const electrical = f.machines.filter((m) => m.electrical);
+      const codes = new Set(electrical.map((m) => m.code));
+      if (!electrical.length) err(f.code, 'declares SINGLE_LINE_DIAGRAM but no asset is placed on it');
+
+      const roots = electrical.filter((m) => !m.electrical!.parent);
+      if (roots.length === 0) err(f.code, 'single line diagram has no incomer — every node has a parent');
+      if (roots.length > 1) err(f.code, `single line diagram has ${roots.length} roots: ${roots.map((r) => r.code).join(', ')}`);
+
+      for (const m of electrical) {
+        const parent = m.electrical!.parent;
+        if (parent && !codes.has(parent)) {
+          err(f.code, `${m.code} is fed from ${parent}, which is not on the diagram`);
+        }
+        if (m.electrical!.meterCode && !f.energyMeters.some((x) => x.code === m.electrical!.meterCode)) {
+          err(f.code, `${m.code} names meter ${m.electrical!.meterCode}, which does not exist`);
+        }
+        // Walk up to the root; a cycle never gets there.
+        let hops = 0;
+        let cur: string | undefined = m.electrical!.parent;
+        while (cur && hops < electrical.length + 1) {
+          cur = electrical.find((x) => x.code === cur)?.electrical?.parent;
+          hops++;
+        }
+        if (hops > electrical.length) err(f.code, `${m.code} sits in a supply loop on the single line diagram`);
+      }
+
+      // A transformer feeding more than its rating is a real finding, not a
+      // modelling slip, so it warns rather than fails.
+      for (const t of electrical.filter((m) => m.type === 'TRANSFORMER')) {
+        const rating = t.electrical!.ratedKva;
+        if (!rating) continue;
+        const downstream = electrical
+          .filter((m) => m.electrical!.parent === t.code)
+          .reduce((n, m) => n + (m.electrical!.ratedKva ?? 0), 0);
+        if (downstream > rating * 1.6) {
+          warn(f.code, `transformer ${t.code} rated ${rating} kVA feeds boards totalling ${downstream} kVA`);
+        }
+      }
+    }
+
     if (caps.includes('VISION_INSPECTION') && !f.machines.some((m) => m.type === 'SENSOR')) {
       warn(f.code, 'declares VISION_INSPECTION but no machine is modelled as the inspection station');
     }

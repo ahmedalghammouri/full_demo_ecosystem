@@ -2,6 +2,7 @@ import { Controller, Get, Param, Query, ForbiddenException, ParseUUIDPipe } from
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PowerQualityService } from './power-quality.service';
 import { PowerFactorService } from './power-factor.service';
+import { SldService } from './sld.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 interface RequestUser {
@@ -34,6 +35,7 @@ export class PowerQualityController {
   constructor(
     private readonly svc: PowerQualityService,
     private readonly pf: PowerFactorService,
+    private readonly sld: SldService,
   ) {}
 
   @Get('summary')
@@ -121,6 +123,13 @@ export class PowerQualityController {
     @Query('factoryId') factoryId?: string,
   ) {
     return this.pf.sizing(scopeOf(user, factoryId), target ? Number(target) : 0.98, days ? Number(days) : 30);
+  }
+
+  @Get('sld')
+  @ApiOperation({ summary: 'Single line diagram - the electrical tree with live values on each node' })
+  @ApiQuery({ name: 'factoryId', required: false })
+  singleLine(@CurrentUser() user: RequestUser, @Query('factoryId') factoryId?: string) {
+    return this.sld.diagram(scopeOf(user, factoryId));
   }
 
   @Get('compliance')

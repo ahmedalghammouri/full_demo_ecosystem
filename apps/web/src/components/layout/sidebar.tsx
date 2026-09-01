@@ -87,7 +87,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 // page yet, so they are deliberately absent from the navigation: a sidebar entry
 // that 404s is worse in front of an audience than one that is not there.
 //
-//   /vision  /materials  /sld
+//   /vision  /materials
 //   /cost    /sustainability  /predictive  /environment
 //
 // Re-adding one is a single line here once its page exists. `pnpm caps:check`
@@ -347,6 +347,7 @@ const navItems: NavItem[] = [
           { label: 'PQ Events',        href: '/power-quality', icon: AlertTriangle },
           { label: 'Harmonics',        href: '/harmonics',     icon: BarChart3     },
           { label: 'Power Factor',     href: '/power-factor',  icon: Gauge         },
+          { label: 'Single Line Diagram', href: '/sld',       icon: Network       },
         ],
       },
     ],
