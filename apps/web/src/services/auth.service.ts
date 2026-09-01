@@ -18,6 +18,14 @@ export interface FactoryInfo {
   color: string;
   glowColor: string;
   isActive: boolean;
+  /** Classification and capability list — what the navigation gates on. */
+  metadata?: {
+    type?: string;
+    typeName?: string;
+    typeNameAr?: string;
+    capabilities?: string[];
+    [k: string]: unknown;
+  } | null;
 }
 
 /**

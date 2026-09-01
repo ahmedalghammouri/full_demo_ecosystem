@@ -88,8 +88,24 @@ type NavLike = {
 export function filterNavByCapability<T extends NavLike>(
   items: T[],
   capabilities: FactoryCapability[] | null,
+  /**
+   * Whether a factory is selected at all.
+   *
+   * The distinction matters and used to be conflated. `capabilities === null`
+   * with NO factory selected means "enterprise level, show everything" — the
+   * estate as a whole has every module. The same null WITH a factory selected
+   * means the capability list failed to arrive, and showing everything then
+   * offers screens the API will refuse, which is exactly what this filter
+   * exists to prevent. So it fails closed: unknown means unavailable.
+   */
+  factorySelected = false,
 ): T[] {
-  if (!capabilities) return items;
+  if (!capabilities) {
+    if (!factorySelected) return items;
+    // A site is chosen but we do not know what it has. Hide the specialised
+    // routes rather than offer a refusal.
+    return filterNavByCapability(items, [] as FactoryCapability[], true);
+  }
   const has = (c: FactoryCapability) => capabilities.includes(c);
 
   const pruned: T[] = [];
@@ -97,7 +113,7 @@ export function filterNavByCapability<T extends NavLike>(
     if (item.section) { pruned.push(item); continue; }
 
     if (item.children?.length) {
-      const kids = filterNavByCapability(item.children as T[], capabilities);
+      const kids = filterNavByCapability(item.children as T[], capabilities, factorySelected);
       if (kids.length) pruned.push({ ...item, children: kids });
       continue;
     }

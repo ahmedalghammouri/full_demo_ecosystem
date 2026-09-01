@@ -31,6 +31,20 @@ export interface User {
     city?: string;
     color: string;
     glowColor: string;
+    /**
+     * Classification and capability list, as written by the seeder.
+     *
+     * The navigation gates on this. It was absent here, so the login path built
+     * a factory object without it and every specialised screen was offered at
+     * every site — including the ones the API then refused.
+     */
+    metadata?: {
+      type?: string;
+      typeName?: string;
+      typeNameAr?: string;
+      capabilities?: string[];
+      [k: string]: unknown;
+    } | null;
     lat?: number;
     lng?: number;
   } | null;

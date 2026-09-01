@@ -34,4 +34,27 @@ console.log(allSame ? 'FAIL — all three factories see the same nav' : 'OK — 
 const apiRoutes = new Set(Object.values(CAPABILITY_ROUTES).map((r) => r.href));
 const missing = gated.filter((h) => !apiRoutes.has(h) && !gated.some((g) => g !== h && h.startsWith(g + '/')));
 console.log(missing.length ? `WARN — gated in web but absent from CAPABILITY_ROUTES: ${missing.join(', ')}` : 'OK — web gating agrees with the API capability routes');
-process.exit(allSame ? 1 : 0);
+// ── Fail-closed behaviour ───────────────────────────────────────────────────
+//
+// The bug this guards against: the login path rebuilt the factory object field
+// by field and dropped `metadata`, so the sidebar had no capability list and
+// showed every specialised route — including ones the API refuses. Unknown must
+// mean unavailable whenever a site is actually selected.
+console.log('');
+console.log('-- Fail-closed --');
+const tree = hrefs.map((h) => ({ href: h }));
+
+const enterprise = filterNavByCapability(tree, null, false).length;
+console.log(`  no factory selected      keeps ${enterprise}/${hrefs.length}  (enterprise level — everything)`);
+
+const unknown = filterNavByCapability(tree, null, true);
+const unknownGated = unknown.filter((x) => routeCapability(x.href));
+console.log(`  factory, caps unknown    keeps ${unknown.length}/${hrefs.length}, of which capability-gated: ${unknownGated.length}`);
+
+let failClosedOk = enterprise === hrefs.length && unknownGated.length === 0;
+console.log(failClosedOk
+  ? '  OK — unknown capabilities hide every gated route, enterprise level hides none'
+  : '  FAIL — unknown capabilities did not fail closed');
+
+process.exit(allSame || !failClosedOk ? 1 : 0);
+

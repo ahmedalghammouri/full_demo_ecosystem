@@ -880,12 +880,12 @@ export function Sidebar() {
     [selectedFactory],
   );
   const visibleNav = useMemo(
-    () => filterNavByCapability(filterNavByPermission(navItems, hasPermission), capabilities),
-    [hasPermission, user?.permissions, capabilities],
+    () => filterNavByCapability(filterNavByPermission(navItems, hasPermission), capabilities, !!selectedFactory),
+    [hasPermission, user?.permissions, capabilities, selectedFactory],
   );
   const visibleBottomNav = useMemo(
-    () => filterNavByCapability(filterNavByPermission(bottomNavItems, hasPermission), capabilities),
-    [hasPermission, user?.permissions, capabilities],
+    () => filterNavByCapability(filterNavByPermission(bottomNavItems, hasPermission), capabilities, !!selectedFactory),
+    [hasPermission, user?.permissions, capabilities, selectedFactory],
   );
 
   return (

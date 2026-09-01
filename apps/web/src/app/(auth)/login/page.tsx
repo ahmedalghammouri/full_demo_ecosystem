@@ -124,12 +124,18 @@ function LoginPageInner() {
           code: userFactory.code,
           name: userFactory.name,
           nameAr: userFactory.nameAr,
-          city: undefined,
+          city: userFactory.city,
           lat: userFactory.lat,
           lng: userFactory.lng,
           color: userFactory.color,
           glowColor: userFactory.glowColor,
           isActive: true,
+          // The classification and its capability list. Rebuilding this object
+          // field by field dropped it, so the sidebar had no way to know which
+          // modules the site has and offered every one of them — including the
+          // screens the API then refused. Anything the store needs has to be
+          // copied here explicitly; there is no spread to catch the rest.
+          metadata: userFactory.metadata,
         });
       } else if (factory) {
         // SUPER_ADMIN logging in with a factory context
