@@ -1,0 +1,19 @@
+{
+  // Type environment for the specs only.
+  //
+  // The app's tsconfig excludes them so `next build` — and the Docker web stage,
+  // which copies only this app — never needs jest's types. This config adds them
+  // back for the test runner, resolving from the API workspace exactly as
+  // jest.config.js resolves ts-jest.
+  //
+  // The borrow is a compromise, and it is confined here: nothing on the
+  // production build path reads this file. When this app grows a real suite,
+  // give it its own devDependency and delete both hops.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "react", "react-dom", "jest"],
+    "typeRoots": ["./node_modules/@types", "../api/node_modules/@types"]
+  },
+  "include": ["src/**/*.spec.ts", "src/**/*.spec.tsx", "src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules"]
+}

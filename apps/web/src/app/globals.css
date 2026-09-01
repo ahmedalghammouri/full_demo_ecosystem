@@ -1,0 +1,488 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ══════════════════════════════════════════════
+   Industry360° Loader & Navigation Keyframes
+   ══════════════════════════════════════════════ */
+
+/* 3D spinning disc rings */
+@keyframes mes-disc-spin {
+  0%   { transform: rotateX(70deg) rotateZ(0deg); }
+  100% { transform: rotateX(70deg) rotateZ(360deg); }
+}
+@keyframes mes-disc-spin-rev {
+  0%   { transform: rotateX(70deg) rotateZ(360deg); }
+  100% { transform: rotateX(70deg) rotateZ(0deg); }
+}
+
+/* Logo float */
+@keyframes mes-float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-7px) scale(1.02); }
+}
+
+/* Glow pulse */
+@keyframes mes-glow-blur {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 0.7;  transform: scale(1.15); }
+}
+
+/* Expanding pulse rings */
+@keyframes mes-pulse-ring {
+  0%   { transform: scale(0.82); opacity: 0.5; }
+  100% { transform: scale(1.6);  opacity: 0; }
+}
+
+/* Scan line sweeping down */
+@keyframes mes-scan {
+  0%    { top: -2px;  opacity: 0; }
+  4%    { opacity: 0.8; }
+  96%   { opacity: 0.6; }
+  100%  { top: 100%; opacity: 0; }
+}
+
+/* Auto-fill progress bar (stalls near end for realism) */
+@keyframes mes-progress-fill {
+  0%   { width: 0%;  }
+  12%  { width: 22%; }
+  28%  { width: 45%; }
+  48%  { width: 64%; }
+  65%  { width: 76%; }
+  80%  { width: 85%; }
+  92%  { width: 91%; }
+  100% { width: 96%; }
+}
+
+/* Bouncing dots */
+@keyframes mes-dot-bounce {
+  0%, 60%, 100% { transform: translateY(0);    opacity: 0.3; }
+  30%            { transform: translateY(-5px); opacity: 1;   }
+}
+
+/* Rising particles */
+@keyframes mes-particle-rise {
+  0%   { transform: translateY(0)     scale(1);    opacity: 0.6; }
+  100% { transform: translateY(-90px) scale(0.1);  opacity: 0;   }
+}
+
+/* Brand shimmer sweep */
+@keyframes mes-shimmer-sweep {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Fade + rise in */
+@keyframes mes-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Animated grid drift */
+@keyframes mes-grid-drift {
+  0%   { background-position: 0px 0px;   }
+  100% { background-position: 40px 40px; }
+}
+
+/* Hex orbit decoration */
+@keyframes mes-orbit {
+  0%   { transform: rotate(0deg)   translateX(80px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+@keyframes mes-orbit-rev {
+  0%   { transform: rotate(360deg) translateX(56px) rotate(-360deg); }
+  100% { transform: rotate(0deg)   translateX(56px) rotate(0deg); }
+}
+
+/* Nav progress bar shimmer */
+@keyframes nav-bar-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(700%);  }
+}
+
+/* Simple spin (used by RouteLoader rings) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Industry360° - Design System CSS Variables
+   ============================================ */
+
+@layer base {
+  :root {
+    /* Light theme — Industry360° brand: deep teal-green + gold on a near-white base.
+       Derived from docs/theme (Primary #003933, Secondary #D9BB75, Third #699635). */
+    --background: 180 100% 99%;      /* #FDFFFF */
+    --foreground: 0 0% 8%;           /* Font 1 #141414 */
+
+    --card: 180 20% 98%;             /* Card #F8FAFA */
+    --card-foreground: 0 0% 8%;
+
+    /* ── Chart palette, LIGHT steps ────────────────────────────────────────
+       Validated against this theme's card surface (#F9FBFB) with the dataviz
+       validator: lightness band, chroma floor, adjacent-pair CVD separation,
+       normal-vision floor and contrast all pass. The contrast WARN on the
+       lighter hues is discharged by legends and direct labels, which every
+       chart here carries.
+
+       Charts reference these as var(--viz-N) so the hue follows the THEME.
+       They used to be literal hex strings, which meant the light steps were
+       painted on the dark surface too — violet came out at 2.04:1 there,
+       effectively invisible. */
+    --viz-1: #2a78d6;  /* blue    */
+    --viz-2: #eb6834;  /* orange  */
+    --viz-3: #1baf7a;  /* aqua    */
+    --viz-4: #eda100;  /* yellow  */
+    --viz-5: #e87ba4;  /* magenta */
+    --viz-6: #008300;  /* green   */
+    --viz-7: #4a3aa7;  /* violet  */
+    --viz-8: #e34948;  /* red     */
+
+    --popover: 180 20% 98%;
+    --popover-foreground: 0 0% 8%;
+
+    --primary: 174 100% 11%;         /* Primary #003933 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 18% 91%;        /* Primary 10% #E4ECEB */
+    --secondary-foreground: 174 100% 11%;
+
+    --muted: 180 20% 96%;            /* Primary 4% #F3F7F7 */
+    --muted-foreground: 180 4% 42%;  /* Font 2/3 */
+
+    --accent: 42 57% 66%;            /* Secondary gold #D9BB75 */
+    --accent-foreground: 0 0% 8%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 180 8% 85%;            /* Font 5 #D7DCDC */
+    --input: 180 8% 85%;
+    --ring: 174 100% 11%;
+
+    --radius: 0.625rem;
+
+    /* Analytics series hue — one hue for a single-measure chart, stepped per
+       surface and validated with the dataviz six-checks (lightness band, chroma
+       floor, contrast). The older --chart-* steps fail the band on the dark
+       surface, so this pair is separate rather than a redefinition of them. */
+    --chart-series-1: 159 73% 40%;   /* #1baf7a on the light card */
+
+    /* Chart colors — brand green, gold, third-green, teal, red */
+    --chart-1: 174 100% 15%;
+    --chart-2: 42 57% 55%;
+    --chart-3: 88 48% 40%;           /* Third #699635 */
+    --chart-4: 174 25% 45%;
+    --chart-5: 0 72% 55%;
+
+    /* Sidebar — light mode: a clean light green-tinted surface so embedded
+       badges/labels (which derive from the light palette) keep proper contrast. */
+    --sidebar-background: 174 22% 97%;
+    --sidebar-foreground: 174 30% 12%;
+    --sidebar-primary: 174 100% 11%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 174 18% 91%;
+    --sidebar-accent-foreground: 174 100% 11%;
+    --sidebar-border: 180 8% 85%;
+    --sidebar-ring: 174 100% 11%;
+  }
+
+  .dark {
+    /* Dark theme — brand green-tinted control room, gold accent */
+    --background: 174 32% 7%;
+    --foreground: 180 8% 90%;
+
+    --card: 174 24% 10%;
+    --card-foreground: 180 8% 90%;
+
+    /* ── Chart palette, DARK steps ─────────────────────────────────────────
+       The same eight hues re-stepped for the dark card (#13201E), not an
+       automatic flip. Validated on that surface: every check passes,
+       contrast included. */
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-3: #199e70;
+    --viz-4: #c98500;
+    --viz-5: #d55181;
+    --viz-6: #008300;
+    --viz-7: #9085e9;
+    --viz-8: #e66767;
+
+    --popover: 174 24% 10%;
+    --popover-foreground: 180 8% 90%;
+
+    --primary: 168 42% 48%;          /* brightened brand green for dark */
+    --primary-foreground: 174 60% 8%;
+
+    --secondary: 174 20% 16%;
+    --secondary-foreground: 180 8% 90%;
+
+    --muted: 174 18% 14%;
+    --muted-foreground: 180 6% 60%;
+
+    --accent: 42 55% 62%;            /* gold */
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 180 8% 90%;
+
+    --border: 174 18% 18%;
+    --input: 174 18% 18%;
+    --ring: 168 42% 48%;
+
+    --chart-series-1: 159 73% 36%;   /* #199e70 on the dark card */
+
+    /* Chart colors (vivid for dark) */
+    --chart-1: 168 45% 52%;
+    --chart-2: 42 55% 62%;
+    --chart-3: 88 48% 52%;
+    --chart-4: 174 30% 55%;
+    --chart-5: 0 72% 58%;
+
+    /* Sidebar */
+    --sidebar-background: 174 38% 5%;
+    --sidebar-foreground: 180 8% 85%;
+    --sidebar-primary: 168 42% 48%;
+    --sidebar-primary-foreground: 174 60% 8%;
+    --sidebar-accent: 174 22% 12%;
+    --sidebar-accent-foreground: 180 8% 85%;
+    --sidebar-border: 174 20% 13%;
+    --sidebar-ring: 168 42% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* RTL Support — DIN Next LT Arabic is the brand face (docs/theme/Font.png);
+     falls back to loaded webfonts / system Arabic fonts when unavailable. */
+  [dir="rtl"] {
+    font-family: 'DIN Next LT Arabic', 'IBM Plex Sans Arabic', 'Tajawal', 'Cairo', 'Segoe UI', sans-serif;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
+
+@layer components {
+  /* Glass morphism card — light by default, richer in dark */
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-xl border border-border shadow-sm;
+  }
+  .dark .glass-card {
+    @apply bg-card/50 border-white/10 shadow-glass;
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:shadow-card-hover hover:border-primary/30;
+  }
+
+  /* Industrial card — clean flat surface in light, gradient depth in dark */
+  .industrial-card {
+    background: hsl(var(--card));
+    @apply border border-border shadow-sm rounded-lg;
+  }
+  .dark .industrial-card {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(174 26% 8%) 100%);
+    @apply border-border/50 shadow-industrial;
+  }
+
+  /* KPI Card */
+  .kpi-card {
+    @apply industrial-card p-5 relative overflow-hidden;
+  }
+
+  .kpi-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none;
+  }
+
+  /* Status indicator */
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full relative;
+  }
+
+  .status-dot.running {
+    @apply bg-machine-running shadow-glow-success;
+    animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .status-dot.fault {
+    @apply bg-machine-fault shadow-glow-danger animate-pulse;
+  }
+
+  .status-dot.idle {
+    @apply bg-machine-idle shadow-glow-warning;
+  }
+
+  .status-dot.offline {
+    @apply bg-machine-offline;
+  }
+
+  /* Real-time indicator */
+  .realtime-badge {
+    @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply bg-success-500/10 text-success-400 border border-success-500/20;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent-500 bg-clip-text text-transparent;
+  }
+
+  /* Page header */
+  .page-header {
+    @apply flex items-center justify-between py-4 border-b border-border/50;
+  }
+
+  /* Data table */
+  .data-table-row {
+    @apply border-b border-border/30 transition-colors hover:bg-muted/30;
+  }
+
+  /* Alarm severity */
+  .alarm-critical {
+    @apply bg-danger-500/10 border-l-2 border-danger-500 text-danger-400;
+  }
+
+  .alarm-warning {
+    @apply bg-warning-500/10 border-l-2 border-warning-500 text-warning-400;
+  }
+
+  .alarm-info {
+    @apply bg-brand-500/10 border-l-2 border-brand-500 text-brand-400;
+  }
+
+  /* OEE color coding */
+  .oee-world-class {
+    @apply text-success-400;
+  }
+
+  .oee-good {
+    @apply text-brand-400;
+  }
+
+  .oee-acceptable {
+    @apply text-warning-400;
+  }
+
+  .oee-poor {
+    @apply text-danger-400;
+  }
+
+  /* Shimmer loading */
+  .shimmer {
+    @apply relative overflow-hidden bg-muted/50;
+  }
+
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.05) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .dark .shimmer::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Industrial badge */
+  .badge-running { @apply bg-machine-running/15 text-machine-running border-machine-running/30; }
+  .badge-idle { @apply bg-machine-idle/15 text-machine-idle border-machine-idle/30; }
+  .badge-fault { @apply bg-machine-fault/15 text-machine-fault border-machine-fault/30; }
+  .badge-maintenance { @apply bg-machine-maintenance/15 text-machine-maintenance border-machine-maintenance/30; }
+  .badge-offline { @apply bg-machine-offline/15 text-gray-400 border-machine-offline/30; }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .industrial-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   Basemap — dark treatment
+   ══════════════════════════════════════════════
+   OpenStreetMap serves only a light basemap and needs no API key, which is the
+   trade the landing page wants: no key to expire, no watermark, and one env var
+   to repoint at an offline tile server. The dark look is applied here rather
+   than bought from a tile provider.
+
+   invert+hue-rotate is the standard pair for this: invert alone turns the sea
+   orange, and the hue rotation puts it back to blue. Labels stay legible
+   because they invert along with the land they sit on. */
+.i360-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.55);
+}
+/* The attribution and zoom controls must NOT be inverted — they are UI, not map. */
+.i360-map .leaflet-control-container {
+  filter: none;
+}
+.i360-map .leaflet-control-attribution {
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+}
+.i360-map .leaflet-control-attribution a {
+  color: rgba(255, 255, 255, 0.75);
+}

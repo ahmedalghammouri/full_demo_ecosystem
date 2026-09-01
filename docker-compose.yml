@@ -1,0 +1,301 @@
+name: i360
+
+networks:
+  i360-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  influxdb-data:
+  minio-data:
+  nginx-certs:
+  grafana-data:
+
+services:
+  # ============================================================
+  # DATABASES
+  # ============================================================
+
+  postgres:
+    image: timescale/timescaledb:2.17.2-pg16
+    container_name: i360-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: industry360
+      POSTGRES_USER: i360_user
+      POSTGRES_PASSWORD: i360_pass_2026
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${POSTGRES_PORT:-5434}:5432"
+    networks:
+      - i360-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U i360_user -d industry360"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: i360-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ""
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${REDIS_PORT_HOST:-6380}:6379"
+    networks:
+      - i360-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: i360-influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: i360_admin_2026
+      DOCKER_INFLUXDB_INIT_ORG: industry360
+      DOCKER_INFLUXDB_INIT_BUCKET: i360_timeseries
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: i360-influx-super-secret-token
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${INFLUX_PORT:-8087}:8086"
+    networks:
+      - i360-network
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # MESSAGING
+  # ============================================================
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: i360-mqtt-broker
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${MQTT_PORT:-1884}:1883"
+      - "${BIND_ADDR:-0.0.0.0}:${MQTT_WS_PORT:-9003}:9001"
+    networks:
+      - i360-network
+
+  # ============================================================
+  # STORAGE
+  # ============================================================
+
+  minio:
+    image: minio/minio:latest
+    container_name: i360-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${MINIO_PORT:-9010}:9000"
+      - "${BIND_ADDR:-0.0.0.0}:${MINIO_CONSOLE_PORT:-9011}:9001"
+    networks:
+      - i360-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # ============================================================
+  # APPLICATIONS
+  # ============================================================
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      target: development
+    image: i360-api:dev
+    container_name: i360-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      API_PORT: 3001
+      DATABASE_URL: postgresql://i360_user:i360_pass_2026@postgres:5432/industry360?schema=public
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      INFLUX_URL: http://influxdb:8086
+      INFLUX_TOKEN: i360-influx-super-secret-token
+      INFLUX_ORG: industry360
+      INFLUX_BUCKET: i360_timeseries
+      MQTT_BROKER_URL: mqtt://mosquitto:1883
+      # Grafana embedding for the Dashboard Center.
+      #  - GRAFANA_URL: server-side base (internal docker network) for API calls.
+      #  - GRAFANA_PUBLIC_URL: browser-facing base used to build iframe (kiosk) URLs.
+      GRAFANA_URL: http://grafana:3000
+      GRAFANA_PUBLIC_URL: http://localhost:3003
+      GRAFANA_DEFAULT_ORG_ID: "1"
+      GRAFANA_FACTORY_VAR: factory
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: industry360
+      JWT_SECRET: i360-demo-jwt-secret-change-in-production-32chars
+      JWT_REFRESH_SECRET: i360-demo-refresh-secret-change-in-prod-32chars
+      JWT_EXPIRES_IN: 8h
+      JWT_REFRESH_EXPIRES_IN: 30d
+      CORS_ORIGINS: http://localhost:3000,http://localhost:8080,http://web:3000
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+      - ./apps/api/logs:/app/logs
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${API_PORT_HOST:-4100}:3001"
+    networks:
+      - i360-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Apply the versioned migrations, then seed if the estate is not there yet.
+    #
+    # This used to be `prisma db push --accept-data-loss`, which builds the
+    # schema with no migration history and, as the flag says, will drop a column
+    # rather than refuse. Fine while a schema is being sketched; wrong for a
+    # deployment, where the history is the only record of how the database got
+    # its shape and P3005 then blocks every later `migrate deploy`.
+    #
+    # The seed is idempotent, so a restart converges instead of duplicating.
+    command: >
+      sh -c "npx prisma migrate deploy &&
+             npx tsx prisma/seed.ts &&
+             pnpm start:dev"
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: development
+    image: i360-web:dev
+    container_name: i360-web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_WS_URL: ws://localhost:8080
+      NEXT_PUBLIC_APP_URL: http://localhost:8080
+      # Where the Next server forwards /api and /socket.io when it is reached
+      # directly on its own port instead of through nginx.
+      API_PROXY_TARGET: http://api:3001
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${WEB_PORT:-3100}:4000"
+    networks:
+      - i360-network
+    depends_on:
+      - api
+
+  # ============================================================
+  # REVERSE PROXY
+  # ============================================================
+
+  nginx:
+    image: nginx:alpine
+    container_name: i360-nginx
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx-certs:/etc/nginx/certs
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${HTTP_PORT:-8100}:80"
+      - "${BIND_ADDR:-0.0.0.0}:${HTTPS_PORT:-8543}:443"
+    networks:
+      - i360-network
+    depends_on:
+      - api
+      - web
+
+  # ============================================================
+  # MONITORING
+  # ============================================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: i360-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${PROMETHEUS_PORT:-9091}:9090"
+    networks:
+      - i360-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: i360-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: industry360
+      # Embedding inside the Industry360° Dashboard Center
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_SECURITY_COOKIE_SAMESITE: "lax"
+      # Anonymous Viewer so embedded panels render in the Dashboard Center without a
+      # Grafana login wall (read-only; admin still required to edit/provision).
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Viewer"
+      GF_USERS_DEFAULT_THEME: "dark"
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: "5s"
+      # Plugins used by the dashboard library (GF_PLUGINS_PREINSTALL replaces the
+      # deprecated GF_INSTALL_PLUGINS as of Grafana 11.5+/13)
+      GF_PLUGINS_PREINSTALL: "redis-datasource,marcusolsson-treemap-panel"
+      # Datasource connection (consumed by provisioning/datasources/datasources.yaml)
+      MES_PG_HOST: postgres
+      MES_PG_PORT: "5432"
+      MES_PG_DB: industry360
+      MES_PG_USER: i360_user
+      MES_PG_PASSWORD: i360_pass_2026
+      I360_INFLUX_URL: http://influxdb:8086
+      I360_INFLUX_ORG: industry360
+      I360_INFLUX_BUCKET: i360_timeseries
+      I360_INFLUX_TOKEN: i360-influx-super-secret-token
+      MES_PROM_URL: http://prometheus:9090
+      # Alert routing back into Industry360°
+      MES_ALERT_WEBHOOK: http://api:4001/api/v1/notifications/grafana-webhook
+    volumes:
+      # Provisioning: datasources, dashboard providers, alerting (Industry360° suite)
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      # Dashboard JSON library (read-only) — lives in source control, survives recreation
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # Grafana state (alert history, annotations)
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${BIND_ADDR:-0.0.0.0}:${GRAFANA_PORT:-3103}:3000"
+    networks:
+      - i360-network
+    depends_on:
+      - prometheus
+      - postgres
+      - influxdb

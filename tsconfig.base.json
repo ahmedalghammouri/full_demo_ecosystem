@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@i360/ui": ["packages/ui/src/index.ts"],
+      "@i360/shared": ["packages/shared/src/index.ts"],
+      "@i360/types": ["packages/types/src/index.ts"],
+      "@i360/auth-utils": ["packages/auth-utils/src/index.ts"],
+      "@i360/api-sdk": ["packages/api-sdk/src/index.ts"],
+      "@i360/industrial-drivers": ["packages/industrial-drivers/src/index.ts"]
+    }
+  }
+}

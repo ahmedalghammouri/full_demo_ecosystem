@@ -3,6 +3,13 @@ node_modules
 .pnp
 .pnp.js
 
+# Pilot and demo projects kept locally for reference only.
+# NOTE the spelling: the directory on disk is `referance`. The rule here used to
+# read `reference`, which matched nothing — MES360_SDPF is a live customer
+# system and must never leave this machine.
+referance/
+reference/
+
 # Build outputs
 dist
 build
@@ -12,12 +19,14 @@ out
 *.tsbuildinfo
 
 # Environment
-#.env
-.env.local
-.env.*.local
-.env.production
-# real (filled) Hostinger env — keep secrets out of git; the .example is tracked
-#.env.hostinger
+#
+# Every real env file is ignored; only the *.example templates are tracked.
+# These hold JWT secrets, the database password and the Influx/MinIO tokens —
+# committing one publishes the credentials of every deployment that reuses it.
+.env
+.env.*
+!.env.example
+!.env.*.example
 
 # Logs (runtime log output only — NOT source folders literally named "logs",
 # e.g. the Next.js route apps/web/src/app/(platform)/maintenance/logs)
@@ -65,9 +74,6 @@ SYSTEM-ADMIN-ACCESS.md
 
 # Edge gateway's own generated Prisma client
 apps/edgegateway/src/generated/
-reference/
-reference
-/reference
 
 # Local DB dumps (contain sensitive data - never commit)
 

@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Industry360° Edge Gateway</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%23e4d09f'/><stop offset='1' stop-color='%23d9bb75'/></linearGradient></defs><rect width='64' height='64' rx='14' fill='url(%23g)'/><text x='32' y='43' font-family='Segoe UI,sans-serif' font-size='20' font-weight='900' fill='%23003933' text-anchor='middle'>360°</text></svg>" />
+<style>
+  :root{
+    /* Industry360° brand — deep teal-green + gold (see docs/theme) */
+    --bg:174 35% 6%; --bg2:174 30% 8%; --fg:180 10% 92%;
+    --card:174 24% 10%; --card2:174 24% 8%; --border:174 20% 18%;
+    --muted:174 20% 14%; --muted-fg:180 8% 58%;
+    --primary:168 42% 46%; --primary2:42 55% 60%;
+    --sidebar:174 40% 5%; --sidebar-fg:180 8% 85%; --sidebar-accent:174 22% 12%; --sidebar-border:174 20% 12%;
+    --good:152 55% 48%; --bad:0 80% 68%; --warn:38 92% 58%; --brand1:#4c7571; --brand2:#003933;
+    --shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'DIN Next LT Arabic','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:hsl(var(--fg));font-size:14px;
+    background:hsl(var(--bg));background-image:radial-gradient(900px 500px at 100% -5%,hsl(42 55% 55%/.07),transparent),radial-gradient(900px 500px at 0% 0%,hsl(168 45% 45%/.08),transparent)}
+  *::-webkit-scrollbar{width:9px;height:9px}*::-webkit-scrollbar-thumb{background:hsl(var(--border));border-radius:5px}
+  .hidden{display:none!important}.grow{flex:1}.mono{font-variant-numeric:tabular-nums;font-family:'Cascadia Code',Consolas,monospace}
+  input,select{width:100%;background:hsl(var(--bg2));border:1px solid hsl(var(--border));color:hsl(var(--fg));border-radius:9px;padding:10px 12px;margin-top:6px;font-size:13px;transition:.15s}
+  input:focus,select:focus{outline:none;border-color:hsl(var(--primary));box-shadow:0 0 0 3px hsl(var(--primary)/.2)}
+  label{font-size:11px;font-weight:600;letter-spacing:.02em;color:hsl(var(--muted-fg));display:block;margin-top:12px;text-transform:uppercase}
+  button{background:linear-gradient(135deg,var(--brand1),var(--brand2));color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:13px;transition:.15s;box-shadow:0 4px 12px hsl(var(--primary)/.25)}
+  button:hover{transform:translateY(-1px);filter:brightness(1.05)}
+  button.ghost{background:transparent;border:1px solid hsl(var(--border));color:hsl(var(--fg));box-shadow:none}
+  button.ghost:hover{background:hsl(var(--muted)/.6);transform:none}
+  button.danger{background:transparent;border:1px solid hsl(var(--bad)/.4);color:hsl(var(--bad));box-shadow:none}
+  button.danger:hover{background:hsl(var(--bad)/.12);transform:none}
+  button.sm{padding:6px 11px;font-size:12px}
+  .brand-mark{font-weight:800;background:linear-gradient(90deg,var(--brand1),var(--brand2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .brand-tile{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e4d09f,#d9bb75);color:#003933;font-weight:900;letter-spacing:-.02em;flex:none}
+  .logo .brand-tile{width:40px;height:40px;border-radius:11px;font-size:12px}
+  .login-head .brand-tile{width:44px;height:44px;border-radius:12px;font-size:13px}
+  .err{color:hsl(var(--bad));font-size:12px;margin-top:10px;min-height:16px}
+
+  /* Login */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center}
+  .login-card{background:hsl(var(--card)/.85);backdrop-filter:blur(12px);border:1px solid hsl(var(--border));border-radius:20px;padding:36px;width:390px;box-shadow:var(--shadow)}
+  .login-head{display:flex;align-items:center;gap:13px;margin-bottom:4px}
+  .login-head img{width:44px;height:44px;border-radius:12px;object-fit:contain}
+
+  /* Shell */
+  #app{display:flex;min-height:100vh}
+  aside{width:248px;background:hsl(var(--sidebar));border-right:1px solid hsl(var(--sidebar-border));display:flex;flex-direction:column;position:fixed;inset:0 auto 0 0;height:100vh;z-index:10}
+  .logo{display:flex;align-items:center;gap:12px;height:66px;padding:0 18px;border-bottom:1px solid hsl(var(--sidebar-border))}
+  .logo img{width:40px;height:40px;border-radius:11px;object-fit:contain}
+  .logo .t1{font-size:16px;line-height:1}.logo .t2{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:hsl(var(--sidebar-fg)/.4);margin-top:4px;font-weight:600}
+  nav{flex:1;padding:14px 12px;display:flex;flex-direction:column;gap:3px;overflow:auto}
+  nav .sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:hsl(var(--sidebar-fg)/.32);padding:16px 12px 7px}
+  nav button{position:relative;display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:transparent;color:hsl(var(--sidebar-fg)/.72);border-radius:10px;padding:11px 13px;font-weight:500;font-size:13px;box-shadow:none}
+  nav button:hover{background:hsl(var(--sidebar-accent)/.7);color:hsl(var(--sidebar-fg));transform:none}
+  nav button.active{background:hsl(var(--primary)/.16);color:#a9c7c3;font-weight:600}
+  nav button.active::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(var(--brand1),var(--brand2))}
+  nav button svg{width:17px;height:17px;flex-shrink:0}
+  .side-foot{padding:13px;border-top:1px solid hsl(var(--sidebar-border))}
+  .u{display:flex;align-items:center;gap:10px}
+  .avatar{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,hsl(var(--primary)/.3),hsl(var(--primary2)/.3));color:#a9c7c3;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+
+  .content{margin-left:248px;flex:1;display:flex;flex-direction:column;min-width:0}
+  header{display:flex;align-items:center;gap:10px;padding:15px 26px;border-bottom:1px solid hsl(var(--border));background:hsl(var(--bg)/.7);backdrop-filter:blur(10px);position:sticky;top:0;z-index:5}
+  header h1{font-size:17px;font-weight:700;margin:0}
+  header .sub{font-size:11.5px;color:hsl(var(--muted-fg));margin-top:1px}
+  .pill{font-size:11px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid hsl(var(--border));display:inline-flex;align-items:center;gap:6px;background:hsl(var(--card)/.7)}
+  .dot{width:8px;height:8px;border-radius:50%;background:hsl(var(--muted-fg));transition:.3s}
+  .dot.on{background:hsl(var(--good));box-shadow:0 0 0 3px hsl(var(--good)/.18)}
+  .dot.off{background:hsl(var(--bad));box-shadow:0 0 0 3px hsl(var(--bad)/.18)}
+  .dot.live{background:hsl(var(--good));animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 hsl(var(--good)/.5)}50%{box-shadow:0 0 0 5px hsl(var(--good)/0)}}
+  main{padding:24px 26px;max-width:1240px;width:100%}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:18px}
+  .kpi{background:linear-gradient(150deg,hsl(var(--card)),hsl(var(--card2)));border:1px solid hsl(var(--border));border-radius:15px;padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::after{content:"";position:absolute;right:-20px;top:-20px;width:70px;height:70px;border-radius:50%;background:hsl(var(--primary)/.08)}
+  .kpi .l{font-size:11px;color:hsl(var(--muted-fg));text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:8px}
+  .kpi .v{font-size:27px;font-weight:800;letter-spacing:-.02em}
+  .kpi .v.good{color:hsl(var(--good))}.kpi .v.bad{color:hsl(var(--bad))}.kpi .v.brand{color:#8fb3ae}
+
+  .card{background:linear-gradient(150deg,hsl(var(--card)),hsl(var(--card2)));border:1px solid hsl(var(--border));border-radius:16px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+  .card-h{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-bottom:1px solid hsl(var(--border))}
+  .card-h .ttl{font-size:13px;font-weight:700;display:flex;align-items:center;gap:9px}
+  .card-h .ttl svg{width:16px;height:16px;color:hsl(var(--primary))}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;color:hsl(var(--muted-fg));font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:11px 18px;background:hsl(var(--bg2)/.5)}
+  td{padding:13px 18px;border-top:1px solid hsl(var(--border)/.5)}
+  tbody tr{transition:background .15s}
+  tbody tr:hover{background:hsl(var(--primary)/.05)}
+  .tg{font-size:10px;font-weight:600;padding:3px 9px;border-radius:7px;border:1px solid hsl(var(--border));display:inline-flex;align-items:center;gap:5px}
+  .tg .d{width:6px;height:6px;border-radius:50%}
+  .tg.GOOD,.tg.on{color:hsl(var(--good));border-color:hsl(var(--good)/.35);background:hsl(var(--good)/.12)}
+  .tg.GOOD .d,.tg.on .d{background:hsl(var(--good))}
+  .tg.TOTAL{color:#8fb3ae;border-color:hsl(var(--primary)/.4);background:hsl(var(--primary)/.14)}
+  .tg.BAD,.tg.off{color:hsl(var(--bad));border-color:hsl(var(--bad)/.35);background:hsl(var(--bad)/.12)}
+  .tg.off .d{background:hsl(var(--bad))}
+  .tg.warn{color:hsl(var(--warn));border-color:hsl(var(--warn)/.35);background:hsl(var(--warn)/.12)}
+  .tg.neutral{color:hsl(var(--muted-fg))}
+  .val{font-weight:700;font-size:14px}
+  @keyframes flash{0%{background:hsl(var(--primary)/.35);color:#fff}100%{background:transparent}}
+  .flash{animation:flash 1s ease-out}
+  .empty{text-align:center;padding:34px 18px;color:hsl(var(--muted-fg))}
+  .empty svg{width:34px;height:34px;opacity:.3;margin-bottom:10px}
+
+  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:46px 16px;z-index:50;overflow:auto}
+  .modal{background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:18px;width:680px;max-width:100%;padding:24px;box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 18px;font-size:17px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .section{grid-column:1/-1;border-top:1px solid hsl(var(--border));margin-top:8px;padding-top:10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:hsl(var(--primary))}
+  .modal-foot{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+  .hint{font-size:11.5px;color:hsl(var(--muted-fg));margin-top:12px}
+  code{background:hsl(var(--muted));padding:2px 6px;border-radius:5px;font-size:12px}
+
+  /* Light theme (sidebar stays dark, matching the MES web app) */
+  body.light{--bg:180 100% 99%;--bg2:180 20% 94%;--fg:0 0% 8%;
+    --card:0 0% 100%;--card2:174 20% 98%;--border:180 10% 85%;
+    --muted:180 16% 92%;--muted-fg:180 4% 42%;--shadow:0 6px 22px rgba(0,40,35,.08)}
+  body.light table th{background:hsl(174 15% 95%)}
+  .theme-btn{cursor:pointer;background:hsl(var(--card)/.7);border:1px solid hsl(var(--border));color:hsl(var(--fg));width:30px;height:30px;padding:0;border-radius:8px;font-size:14px;box-shadow:none}
+  .theme-btn:hover{background:hsl(var(--muted)/.7);transform:none}
+
+  /* Scrollable table body with sticky header */
+  .sub2{font-size:10.5px;color:hsl(var(--muted-fg));margin-top:1px}
+  .tbl-wrap{max-height:440px;overflow:auto}
+  .tbl-wrap thead th{position:sticky;top:0;z-index:2;background:hsl(var(--card2))}
+  body.light .tbl-wrap thead th{background:hsl(174 16% 94%)}
+  /* Pagination */
+  .pager{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-top:1px solid hsl(var(--border));font-size:12px;color:hsl(var(--muted-fg))}
+  .pager .pg{display:flex;gap:8px;align-items:center}
+  .pager button[disabled]{opacity:.4;cursor:default}
+</style>
+</head>
+<body>
+  <!-- Login -->
+  <div id="login">
+    <div class="login-card">
+      <div class="login-head"><div class="brand-tile" aria-label="Industry360°">360°</div>
+        <div><div style="font-size:19px"><span class="brand-mark">MES</span><span style="color:#c9a85b;font-weight:700">360°</span></div>
+          <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:hsl(var(--muted-fg));font-weight:600">Edge Gateway</div></div>
+      </div>
+      <div style="color:hsl(var(--muted-fg));font-size:12.5px;margin-top:8px">Local monitoring &amp; configuration</div>
+      <label>Email</label><input id="email" type="email" placeholder="admin@industry360.sa" />
+      <label>Password</label><input id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      <div class="err" id="loginErr"></div>
+      <button style="width:100%;margin-top:18px" onclick="doLogin()">Sign in</button>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app" class="hidden">
+    <aside>
+      <div class="logo"><div class="brand-tile" aria-label="Industry360°">360°</div>
+        <div><div class="t1"><span class="brand-mark">MES</span><span style="color:#c9a85b;font-weight:700">360°</span></div>
+          <div class="t2">Edge Gateway</div></div>
+      </div>
+      <nav>
+        <div class="sec">Gateway</div>
+        <button data-tab="overview" class="active" onclick="switchTab('overview')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Overview</button>
+        <button data-tab="linebal" onclick="switchTab('linebal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 7h14M7 7l-3 6a3 3 0 0 0 6 0zM17 7l-3 6a3 3 0 0 0 6 0z"/></svg>Line Balance</button>
+        <button data-tab="balance" onclick="switchTab('balance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 7h14M7 7l-3 6a3 3 0 0 0 6 0zM17 7l-3 6a3 3 0 0 0 6 0z"/></svg>Count Balance</button>
+        <div class="sec">IIoT &amp; Connectivity</div>
+        <button data-tab="limits" onclick="switchTab('limits')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18h16M4 6h16"/><circle cx="9" cy="6" r="2.4"/><circle cx="15" cy="18" r="2.4"/></svg>Counting Limits</button>
+        <button data-tab="devices" onclick="switchTab('devices')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>Devices</button>
+        <button data-tab="tags" onclick="switchTab('tags')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 13.42 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><circle cx="7" cy="7" r="1.4"/></svg>Tag Browser</button>
+        <button data-tab="signals" onclick="switchTab('signals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20V8"/></svg>Signal Rules</button>
+        <button data-tab="meters" onclick="switchTab('meters')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>Energy Meters</button>
+        <div class="sec">System</div>
+        <button data-tab="settings" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
+      </nav>
+      <div class="side-foot"><div class="u">
+        <div class="avatar" id="userInitials">--</div>
+        <div style="min-width:0;flex:1"><div id="userName" style="font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">User</div>
+          <div id="userRole" style="color:hsl(var(--muted-fg));font-size:10px"></div></div>
+        <button class="ghost sm" onclick="logout()" title="Sign out">⎋</button>
+      </div></div>
+    </aside>
+
+    <div class="content">
+      <header>
+        <div><h1 id="pageTitle">Overview</h1><div class="sub" id="pageSub">Live monitoring</div></div>
+        <div class="grow"></div>
+        <button class="theme-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+        <span class="pill"><span class="dot live"></span> Live</span>
+        <span class="pill"><span class="dot" id="dotDb"></span> DB</span>
+        <span class="pill"><span class="dot" id="dotMqtt"></span> MQTT</span>
+        <span class="pill"><span class="dot" id="dotInflux"></span> Influx</span>
+        <span class="pill"><span class="dot" id="dotMes"></span> MES</span>
+        <span class="pill" id="bufPill">buffer 0</span>
+      </header>
+      <main>
+        <section id="tab-overview">
+          <div class="kpis" id="ovKpis"></div>
+          <div class="card"><div class="card-h"><span class="ttl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/></svg>Devices</span></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Status</th><th>Tags</th><th>Poll</th></tr></thead><tbody id="ovDevices"></tbody></table></div></div>
+          <div class="card"><div class="card-h"><span class="ttl">Executing Job Orders — live counts</span></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Work Order</th><th>Operation</th><th>Machine</th><th class="mono">Good</th><th class="mono">Bad</th><th class="mono">Total</th></tr></thead><tbody id="ovJobs"></tbody></table></div></div>
+          <div class="card"><div class="card-h"><span class="ttl">Live tag values</span></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Tag</th><th>Role</th><th class="mono">Value</th><th>Unit</th><th>Updated</th></tr></thead><tbody id="ovTags"></tbody></table></div></div>
+        </section>
+
+        <section id="tab-balance" class="hidden">
+          <div class="card">
+            <div class="card-h"><span class="ttl">Material balance across the line</span>
+              <span style="color:hsl(var(--muted-fg));font-size:11.5px">refreshes every 1.5s</span></div>
+            <div style="padding:0 14px 12px;color:hsl(var(--muted-fg));font-size:12px;line-height:1.6">
+              Each machine counts in its own unit &mdash; the filler in inners, the cartoner in cartons,
+              the palletiser in pallets. Converted through the product&rsquo;s packaging ladder they become
+              comparable, and each row&rsquo;s <b>Diff</b> is what the machine before it made
+              <i>minus</i> what this one has handled.
+              A steady positive gap that is larger than the work sitting inside the machine is a counter
+              missing pulses.
+            </div>
+          </div>
+          <div id="balRuns"></div>
+        </section>
+
+        <section id="tab-linebal" class="hidden">
+          <div class="card">
+            <div class="card-h"><span class="ttl">Reconciled line</span>
+              <span style="color:hsl(var(--muted-fg));font-size:11.5px">refreshes every 1.5s</span></div>
+            <div style="padding:0 14px 12px;color:hsl(var(--muted-fg));font-size:12px;line-height:1.65">
+              One counter can be wrong; a whole line cannot, because material is conserved.
+              What left a machine either entered the next one or is still on the conveyor between them.
+              So a gap no larger than that conveyor is <b>physics</b> and is left alone &mdash; and only
+              what exceeds it is treated as a miscount. Corrections credit the <b>minimum</b> the line
+              forces to be true, never more, and one that hits its ceiling is clamped and reported
+              rather than absorbed.
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><span class="ttl">Counter health</span>
+              <span style="color:hsl(var(--muted-fg));font-size:11.5px">measured on the live signal</span></div>
+            <div style="padding:0 14px 10px;color:hsl(var(--muted-fg));font-size:12px;line-height:1.65">
+              A miscounting sensor is silent &mdash; it does not error, it just reports a smaller number.
+              Two things give it away. If the counted level <b>never lasts more than one sample</b>,
+              its real width is below the sample interval and the total is a floor, not a count.
+              And two counters on one machine watch the same product, so if one reports a fraction of
+              the other, the signals are different shapes and the answer is at the <b>sensor</b>,
+              not the poll rate.
+            </div>
+            <div class="tbl-wrap"><table><thead><tr>
+              <th>Tag</th><th>Machine</th><th>Role</th><th class="mono">Addr</th>
+              <th class="mono">Rate /min</th><th class="mono">vs peer</th>
+              <th class="mono">Active</th><th class="mono">Pulse (med / min)</th>
+              <th class="mono">Sample</th><th>Verdict</th>
+            </tr></thead><tbody id="chRows"></tbody></table></div>
+          </div>
+          <div id="lbRuns"></div>
+          <div class="card">
+            <div class="card-h"><span class="ttl">Configuration</span>
+              <span id="lbMsg" style="font-size:11.5px"></span>
+              <span style="color:hsl(var(--muted-fg));font-size:11.5px">gateway only &mdash; not editable from the web app</span></div>
+            <div style="padding:0 14px 10px;color:hsl(var(--muted-fg));font-size:12px;line-height:1.65">
+              <b>Conveyor capacity</b> is <i>one belt</i> &mdash; the run from that machine to the
+              <b>next one only</b>, never a total across several. Each machine is compared with its
+              own neighbour, so the chain builds itself; adding them up would count a belt twice.
+              Enter it in whatever unit you counted it in: &ldquo;3 cartons&rdquo; is typed as
+              <code>3</code> with <code>CARTON</code> selected, and the ladder converts it.
+              Leave it empty and that link is left unbalanced: an unmeasured conveyor is never
+              assumed to be empty.<br>
+              <b>Transit</b> is seconds for one unit to travel that belt &mdash; it does not affect the
+              correction, only when the line counts as drained. <b>Max corr %</b> is the ceiling:
+              past it the correction is clamped and reported instead of applied.
+              <b>Apply</b> records the correction against the job order; with it off, the balance is
+              measured and shown and nothing is written.
+            </div>
+            <div class="tbl-wrap"><table><thead><tr>
+              <th>Machine</th><th>On</th><th>Anchor</th>
+              <th class="mono">Conveyor capacity &mdash; this machine to the next</th>
+              <th class="mono">Transit (sec)</th><th class="mono">Max corr %</th><th>Apply</th><th></th>
+            </tr></thead><tbody id="lbCfg"></tbody></table></div>
+          </div>
+        </section>
+
+        <section id="tab-limits" class="hidden">
+          <div class="card">
+            <div class="card-h"><span class="ttl">What each machine is allowed to count</span>
+              <span style="color:hsl(var(--muted-fg));font-size:11.5px">applies on the next cycle &mdash; no restart</span></div>
+            <div style="padding:0 14px 12px;color:hsl(var(--muted-fg));font-size:12px;line-height:1.7">
+              Two guards, and they do different jobs.
+              <b>Debounce</b> refuses an edge arriving sooner than a product possibly can &mdash; it removes
+              contact ring at the source, which is the real cure. At 45 parts a minute the fastest true gap is
+              1333&nbsp;ms, so <b>200&nbsp;ms</b> kills every ring and cannot touch a product. Zero is off.
+              <b>Tolerance</b> holds a whole minute to the machine&rsquo;s design rate plus this allowance;
+              anything over is trimmed, <b>rejects first</b>. It is a net, not a cure &mdash; it DISCARDS
+              measured counts, so what it removes is shown in the last column.
+              Leave it blank for no cap.
+              <div style="margin-top:8px;padding-top:8px;border-top:1px solid hsl(var(--border))">
+                A trim figure that stays high means the counter is still over-counting.
+                <b>Tighten the debounce, not the tolerance</b> &mdash; the tolerance only hides it.
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <table><thead><tr>
+              <th>Machine</th><th>Debounce (ms)</th><th>Tolerance (&plusmn; per min)</th>
+              <th>Trimmed this minute</th><th></th>
+            </tr></thead><tbody id="limRows"></tbody></table>
+          </div>
+        </section>
+
+        <section id="tab-devices" class="hidden">
+          <div class="kpis" id="devKpis"></div>
+          <div class="card"><div class="card-h"><span class="ttl">Modbus Devices</span><button class="sm" onclick="openDeviceForm()">+ Add Device</button></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Name</th><th>IP : Port</th><th>Machine</th><th>Status</th><th>Tags</th><th></th></tr></thead><tbody id="devRows"></tbody></table></div>
+            <div id="devPager"></div></div>
+        </section>
+
+        <section id="tab-tags" class="hidden">
+          <div class="kpis" id="tagKpis"></div>
+          <div class="card"><div class="card-h"><span class="ttl">Tags</span><button class="sm" onclick="openTagForm()">+ Add Tag</button></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Tag</th><th>Device</th><th>Type / Role</th><th>Register</th><th class="mono">Value</th><th>Updated</th><th></th></tr></thead><tbody id="tagRows"></tbody></table></div>
+            <div id="tagPager"></div></div>
+        </section>
+
+        <section id="tab-signals" class="hidden">
+          <div class="card" id="pulseCard" style="display:none"><div class="card-h"><span class="ttl">Pulse detector — live</span><span class="pill"><span class="dot live"></span> updating</span></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Signal</th><th>Machine</th><th>Reading</th><th>Edges in window</th><th>Sample rate</th><th>Verdict</th></tr></thead><tbody id="pulseRows"></tbody></table></div>
+            <div class="hint">Flash the lamp at the machine and watch the edge count here. A pulsing signal reads high half the time, so the level alone always looks like &ldquo;running&rdquo; &mdash; only the edges tell you the signal is arriving.</div></div>
+          <div class="card" style="margin-top:14px"><div class="card-h"><span class="ttl">Bound signals</span></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Tag</th><th>Machine</th><th>Address</th><th>Role</th><th>Thresholds</th></tr></thead><tbody id="sigRows"></tbody></table></div></div>
+          <div class="card" style="margin-top:14px"><div class="card-h"><span class="ttl">State rules — what a state costs in downtime and OEE</span><button class="sm" onclick="openStateRuleForm()">+ Add Rule</button></div>
+            <div class="tbl-wrap"><table><thead><tr><th>State</th><th>Scope</th><th>Downtime</th><th>Planned</th><th>Charged to OEE</th><th>Reason</th><th>Category</th><th>Debounce</th><th></th></tr></thead><tbody id="ruleRows"></tbody></table></div>
+            <div class="hint">A rule for a specific machine wins over the factory rule for the same state, which wins over the gateway built-in default.</div></div>
+          <div class="card" style="margin-top:14px"><div class="card-h"><span class="ttl">Alarm rules — a tag value crossing a limit</span><button class="sm" onclick="openAlarmForm()">+ Add Alarm</button></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Tag</th><th>Condition</th><th>Deadband</th><th>Delay</th><th>Severity</th><th></th></tr></thead><tbody id="alarmRows"></tbody></table></div>
+            <div class="hint">Evaluated here on every reading, so a crossing between two server polls is not missed and alarms keep firing while the link is down.</div></div>
+        </section>
+
+        <section id="tab-meters" class="hidden">
+          <div class="kpis" id="meterKpis"></div>
+          <div class="card"><div class="card-h"><span class="ttl">Energy / Power Meters</span><button class="sm" onclick="openMeterForm()">+ Add Meter</button></div>
+            <div class="tbl-wrap"><table><thead><tr><th>Meter</th><th>Model</th><th>Connection</th><th>Status</th><th>Tags</th><th></th></tr></thead><tbody id="meterRows"></tbody></table></div>
+          </div>
+        </section>
+
+        <section id="tab-settings" class="hidden">
+          <div class="card"><div class="card-h"><span class="ttl">Service Connections</span></div>
+            <div style="padding:18px"><div class="grid2" id="settingsForm"></div>
+              <div class="hint">Saved to <code>gateway-config.json</code> (overrides <code>.env</code>); applied after restart.</div>
+              <div class="modal-foot" style="justify-content:flex-start;margin-top:16px">
+                <button onclick="saveSettings()">Save</button>
+                <button class="ghost" onclick="restartGateway()">Save &amp; Restart</button>
+                <span id="settingsMsg" style="align-self:center;font-size:12px;color:hsl(var(--muted-fg))"></span>
+              </div></div></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div id="modalRoot"></div>
+
+<script>
+  const T={get:()=>localStorage.getItem('eg_token'),set:t=>localStorage.setItem('eg_token',t),clear:()=>localStorage.removeItem('eg_token')};
+  const TITLES={overview:['Overview','Live monitoring'],balance:['Count Balance','What each machine made, in one unit'],linebal:['Line Balance','Reconciling counters against the material between them'],limits:['Counting Limits','What each machine is allowed to report'],devices:['Devices','Modbus device configuration'],tags:['Tag Browser','Tag & counter configuration'],signals:['Signal Rules','How a signal becomes a state, and what it costs'],meters:['Energy Meters','Power-meter configuration'],settings:['Settings','Service connections']};
+  let timer=null,tab='overview',cache={devices:[],tags:[],machines:[],lines:[],areas:[]},prevVals={};
+  function lineOpts(sel){return'<option value="">— select —</option>'+cache.lines.map(l=>`<option value="${l.id}" ${l.id===sel?'selected':''}>${esc(l.name)} (${esc(l.code)})</option>`).join('')}
+  function areaOpts(sel){return'<option value="">— select —</option>'+cache.areas.map(a=>`<option value="${a.id}" ${a.id===sel?'selected':''}>${esc(a.name)} (${esc(a.code)})</option>`).join('')}
+  function scopeSelect(p,e){e=e||{};const st=e.machineId?'machine':e.lineId?'line':e.areaId?'area':'machine';return `
+    <div><label>Scope</label><select id="${p}_scope" onchange="egScopeToggle('${p}')">${selOpts2([['machine','Machine'],['line','Line'],['area','Area']],st)}</select></div>
+    <div><label>Target (Machine / Line / Area)</label>
+      <select id="${p}_machine" style="display:${st==='machine'?'block':'none'}">${machineOpts(e.machineId)}</select>
+      <select id="${p}_line" style="display:${st==='line'?'block':'none'}">${lineOpts(e.lineId)}</select>
+      <select id="${p}_area" style="display:${st==='area'?'block':'none'}">${areaOpts(e.areaId)}</select>
+    </div>`}
+  function egScopeToggle(p){const st=val(p+'_scope');document.getElementById(p+'_machine').style.display=st==='machine'?'block':'none';document.getElementById(p+'_line').style.display=st==='line'?'block':'none';document.getElementById(p+'_area').style.display=st==='area'?'block':'none'}
+  function scopeDto(p){const st=val(p+'_scope');return {machineId:st==='machine'?(val(p+'_machine')||null):null,lineId:st==='line'?(val(p+'_line')||null):null,areaId:st==='area'?(val(p+'_area')||null):null}}
+
+  async function api(p,o={}){const r=await fetch('/api'+p,{...o,headers:{'Content-Type':'application/json',...(T.get()?{Authorization:'Bearer '+T.get()}:{}),...(o.headers||{})}});
+    if(r.status===401){logout();throw new Error('unauthorized')}if(!r.ok){let m='HTTP '+r.status;try{m=(await r.json()).message||m}catch{}throw new Error(m)}return r.status===204?null:r.json()}
+  function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+  function timeAgo(ts){if(!ts)return'—';const s=Math.round((Date.now()-new Date(ts).getTime())/1000);return s<60?s+'s ago':Math.round(s/60)+'m ago'}
+  function dot(el,on){el.className='dot '+(on?'on':'off')}
+  function kpi(l,v,cls){return`<div class="kpi"><div class="l">${l}</div><div class="v ${cls||''}">${v}</div></div>`}
+  function val(id){return document.getElementById(id).value.trim()}
+  function emptyRow(c,msg){return`<tr><td colspan="${c}"><div class="empty">${msg||'No data'}</div></td></tr>`}
+  const PAGE=10;let devPage=1,tagPage=1;
+  function pager(page,total,fn){const pages=Math.max(1,Math.ceil(total/PAGE));return total>PAGE?`<div class="pager"><span>${total} item(s)</span><span class="pg"><button class="ghost sm" ${page<=1?'disabled':''} onclick="${fn}(${page-1})">‹ Prev</button><span>Page ${page} / ${pages}</span><button class="ghost sm" ${page>=pages?'disabled':''} onclick="${fn}(${page+1})">Next ›</button></span></div>`:''}
+  function initTheme(){applyTheme(localStorage.getItem('eg_theme')||'dark')}
+  function applyTheme(t){document.body.classList.toggle('light',t==='light');localStorage.setItem('eg_theme',t);const b=document.getElementById('themeToggle');if(b)b.textContent=t==='light'?'☀️':'🌙'}
+  function toggleTheme(){applyTheme(document.body.classList.contains('light')?'dark':'light')}
+
+  // Auth
+  async function doLogin(){const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,err=document.getElementById('loginErr');err.textContent='';
+    try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+      if(!r.ok){err.textContent='Invalid credentials';return}const d=await r.json();T.set(d.accessToken);localStorage.setItem('eg_user',JSON.stringify(d.user||{}));showApp()}catch{err.textContent='Connection error'}}
+  function logout(){T.clear();clearInterval(timer);document.getElementById('app').classList.add('hidden');document.getElementById('login').classList.remove('hidden')}
+  function showApp(){document.getElementById('login').classList.add('hidden');document.getElementById('app').classList.remove('hidden');
+    const u=JSON.parse(localStorage.getItem('eg_user')||'{}');document.getElementById('userName').textContent=u.name||u.email||'User';
+    document.getElementById('userRole').textContent=u.role||'';document.getElementById('userInitials').textContent=((u.name||u.email||'U').slice(0,2)).toUpperCase();
+    switchTab('overview');startPoll()}
+
+  function switchTab(t){tab=t;document.querySelectorAll('nav button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+    ['overview','balance','linebal','limits','devices','tags','signals','meters','settings'].forEach(s=>document.getElementById('tab-'+s).classList.toggle('hidden',s!==t));
+    document.getElementById('pageTitle').textContent=TITLES[t][0];document.getElementById('pageSub').textContent=TITLES[t][1];
+    if(t==='overview')refreshOverview();if(t==='balance')loadBalance();if(t==='linebal')loadLineBal();if(t==='limits')loadLimits();if(t==='devices')loadDevices();if(t==='tags')loadTags();if(t==='signals')loadSignals();if(t==='meters')loadMeters();if(t==='settings')loadSettings()}
+
+  // ── Counting limits ───────────────────────────────────────────────────
+  // Read and written per machine. Nothing is defaulted on the operator's
+  // behalf: a blank tolerance means the plant has stated no cap, and inventing
+  // one would silently discard real production.
+  async function loadLimits(){
+    const rows=await api('/machine-limits');
+    document.getElementById('limRows').innerHTML = rows.length ? rows.map(r=>{
+      const trim = (r.trimmedGood||r.trimmedBad)
+        ? `<span style="color:hsl(var(--warn,38 92% 50%))">${r.trimmedBad} reject &middot; ${r.trimmedGood} good</span>`
+        : '<span style="color:hsl(var(--muted-fg))">none</span>';
+      return `<tr>
+        <td><b>${esc(r.code)}</b><div style="color:hsl(var(--muted-fg));font-size:11.5px">${esc(r.name||'')}</div></td>
+        <td><input id="lim_d_${r.machineId}" type="number" min="0" step="10" value="${r.debounceMs||0}" style="width:110px"></td>
+        <td><input id="lim_t_${r.machineId}" type="number" step="1" value="${r.tolerancePerMin===null?'':r.tolerancePerMin}" placeholder="no cap" style="width:110px"></td>
+        <td>${trim}</td>
+        <td><button class="btn" onclick="saveLimit('${r.machineId}')">Save</button></td>
+      </tr>`;
+    }).join('') : emptyRow(5,'No active machines');
+  }
+  async function saveLimit(id){
+    const d=document.getElementById('lim_d_'+id).value;
+    const t=document.getElementById('lim_t_'+id).value;
+    try{
+      await api('/machine-limits/'+id,{method:'PATCH',body:JSON.stringify({
+        debounceMs: Number(d)||0,
+        // An empty box is "no cap stated", which is NOT the same as a cap of zero.
+        tolerancePerMin: t===''?null:Number(t),
+      })});
+      loadLimits();
+    }catch(e){alert('Save failed: '+e.message)}
+  }
+
+  // Polling (1.5s)
+  function startPoll(){clearInterval(timer);tick();timer=setInterval(tick,1500)}
+  async function tick(){
+    try{const s=await api('/status');
+      dot(document.getElementById('dotDb'),s.sinks.db);dot(document.getElementById('dotMqtt'),s.sinks.mqtt);dot(document.getElementById('dotInflux'),s.sinks.influx);
+      document.getElementById('dotMes').className='dot '+(s.sinks.mes===null?'':(s.sinks.mes?'on':'off'));
+      document.getElementById('bufPill').textContent='buffer '+(s.buffers.pgTagValue+s.buffers.influx+s.buffers.mqtt);
+      window._devStatus=s.devices||[];
+      if(tab==='overview')refreshOverview();
+      else if(tab==='tags')pollTagValues();
+      else if(tab==='devices')pollDeviceStatus();
+      // Refreshed on the same 1.5 s tick: someone flashing a lamp at the machine
+      // needs to see the edge count move while they are still standing there.
+      else if(tab==='signals')loadPulse();
+      else if(tab==='balance')loadBalance();
+      else if(tab==='linebal')loadLineBal();
+    }catch{}
+  }
+
+  async function refreshOverview(){
+    try{const[jobs,live]=await Promise.all([api('/job-orders'),api('/live')]);const ds=window._devStatus||[];
+      document.getElementById('ovKpis').innerHTML=kpi('Devices Online',ds.filter(d=>d.connected).length+' / '+ds.length,'brand')+kpi('Executing Job Orders',(jobs||[]).length)+kpi('Live Tags',(live||[]).length);
+      document.getElementById('ovDevices').innerHTML=ds.map(d=>`<tr><td>${esc(d.name)}</td><td><span class="tg ${d.connected?'on':'off'}"><span class="d"></span>${d.connected?'Connected':'Down'}</span></td><td class="mono">${d.tagCount}</td><td class="mono">${d.intervalMs}ms</td></tr>`).join('')||emptyRow(4);
+      document.getElementById('ovJobs').innerHTML=(jobs||[]).map(j=>{const g=j.actualQtyGood||0,b=j.actualQtyRejected||0;return`<tr><td>${esc(j.workOrder?.orderNumber||'—')}</td><td>${esc(j.operationName||'')}</td><td>${esc(j.machine?.name||'—')}</td><td class="mono" style="color:hsl(var(--good))">${g}</td><td class="mono" style="color:hsl(var(--bad))">${b}</td><td class="mono val">${g+b}</td></tr>`}).join('')||emptyRow(6,'No executing job orders');
+      document.getElementById('ovTags').innerHTML=(live||[]).map(v=>{const r=v.tag?.counterRole;return`<tr><td>${esc(v.tag?.name||v.tag?.code||'')}</td><td>${r&&r!=='NONE'?`<span class="tg ${r}">${r}</span>`:'<span class="tg neutral">—</span>'}</td><td class="mono val">${esc(v.value)}</td><td>${esc(v.tag?.unit||'')}</td><td style="color:hsl(var(--muted-fg))">${timeAgo(v.timestamp)}</td></tr>`}).join('')||emptyRow(5,'No tag values yet');
+    }catch{}
+  }
+
+  // Devices
+  async function loadDevices(){try{const[devs,machines,lines,areas]=await Promise.all([api('/devices'),api('/machines'),api('/lines'),api('/areas')]);cache.devices=devs||[];cache.machines=machines||[];cache.lines=lines||[];cache.areas=areas||[];renderDevices()}catch(e){document.getElementById('devRows').innerHTML=emptyRow(7,e.message)}}
+  function goDevPage(p){devPage=p;renderDevices()}
+  function renderDevices(){const all=cache.devices;const pages=Math.max(1,Math.ceil(all.length/PAGE));if(devPage>pages)devPage=pages;const d=all.slice((devPage-1)*PAGE,devPage*PAGE);
+    document.getElementById('devKpis').innerHTML=kpi('Total Devices',all.length)+kpi('Connected',all.filter(x=>x.status==='CONNECTED').length,'good')+kpi('Errors',all.filter(x=>x.status==='ERROR').length,'bad');
+    document.getElementById('devRows').innerHTML=d.map(x=>`<tr><td class="mono" style="color:#8fb3ae;font-weight:600">${esc(x.deviceCode)}</td><td>${esc(x.name)}</td><td class="mono">${esc(x.ipAddress||'—')} : ${x.port||502}</td><td>${esc(x.machine?.name||'—')}</td><td id="ds_${x.id}"><span class="tg ${x.status==='CONNECTED'?'on':'off'}"><span class="d"></span>${esc(x.status)}</span>${x.status==='ERROR'&&x.lastError?`<div style="color:hsl(var(--bad));font-size:10px;margin-top:2px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(x.lastError)}">${esc(x.lastError)}</div>`:''}</td><td class="mono">${(x.tagDefinitions||[]).length}</td><td style="text-align:right;white-space:nowrap"><button class="ghost sm" onclick='openDeviceForm(${JSON.stringify(x)})'>Edit</button> <button class="danger sm" onclick="delDevice('${x.id}','${esc(x.name)}')">Delete</button></td></tr>`).join('')||emptyRow(7,'No devices — add one to start polling');
+    document.getElementById('devPager').innerHTML=pager(devPage,all.length,'goDevPage')}
+  function pollDeviceStatus(){const map={};(window._devStatus||[]).forEach(d=>map[d.id]=d);cache.devices.forEach(x=>{const c=document.getElementById('ds_'+x.id);if(c&&map[x.id]){const on=map[x.id].connected;c.innerHTML=`<span class="tg ${on?'on':'off'}"><span class="d"></span>${on?'CONNECTED':'ERROR'}</span>`}})}
+  function machineOpts(sel){return'<option value="">— none —</option>'+cache.machines.map(m=>`<option value="${m.id}" ${m.id===sel?'selected':''}>${esc(m.name)} (${esc(m.code)})</option>`).join('')}
+  function openDeviceForm(d){const e=d||{},ed=!!d;openModal((ed?'Edit':'Add')+' Device',`<div class="grid2">
+    <div><label>Device Code *</label><input id="f_code" value="${esc(e.deviceCode||'')}" ${ed?'disabled':''} placeholder="PLC-LINE1"></div>
+    <div><label>Name *</label><input id="f_name" value="${esc(e.name||'')}"></div>
+    <div><label>Type</label><select id="f_type" onchange="document.getElementById('ecBox').style.display=this.value==='EDGE_COUNTER'?'contents':'none';if(this.value==='EDGE_COUNTER'&&!document.getElementById('f_poll').value)document.getElementById('f_poll').value='100'">${['PLC','HMI','GATEWAY','SENSOR','METER','DRIVE','EDGE_COUNTER'].map(t=>`<option value="${t}" ${e.type===t?'selected':''}>${t==='EDGE_COUNTER'?'Edge Counter (fast DI)':t}</option>`).join('')}</select></div>
+    ${scopeSelect('f',e)}
+    <div><label>Protocol</label><select id="f_proto" onchange="document.getElementById('tcpBox').style.display=this.value==='MODBUS_RTU'?'none':'contents';document.getElementById('serBox').style.display=this.value==='MODBUS_RTU'?'contents':'none'">${selOpts2([['MODBUS','Modbus TCP'],['MODBUS_RTU_TCP','Modbus RTU over TCP'],['MODBUS_RTU','Modbus RTU (serial)']],e.protocol||'MODBUS')}</select></div>
+    <div><label>Modbus Unit ID</label><input id="f_unit" value="${e.unitId??1}"></div>
+    <div id="tcpBox" style="display:${e.protocol==='MODBUS_RTU'?'none':'contents'}">
+      <div><label>IP Address</label><input id="f_ip" value="${esc(e.ipAddress||'')}" placeholder="192.168.1.100"></div>
+      <div><label>Port</label><input id="f_port" value="${e.port||502}"></div>
+    </div>
+    <div id="serBox" style="display:${e.protocol==='MODBUS_RTU'?'contents':'none'}">
+      <div><label>Serial Port</label><input id="f_serial" value="${esc(e.serialPort||'')}" placeholder="COM3"></div>
+      <div><label>Baud Rate</label><input id="f_baud" value="${e.baudRate??9600}"></div>
+      <div><label>Parity</label><select id="f_parity">${selOpts(['none','even','odd'],e.parity||'none')}</select></div>
+      <div><label>Stop Bits</label><input id="f_stop" value="${e.stopBits??1}"></div>
+    </div>
+    <div><label>Poll Interval (ms)</label><input id="f_poll" value="${e.pollIntervalMs??''}" placeholder="1000"></div>
+    ${(()=>{const ec=(e.config&&e.config.edgeCounter)||{};const rng=(k,ds,dq)=>{const r=ec[k]||{};return `<div style="display:flex;gap:6px;align-items:end"><div style="flex:1"><label>${({discrete:'Discrete Inputs (DI)',coil:'Coils (DO)',holding:'Holding Regs (HR)',input:'Input Regs (IR)'})[k]}</label></div><div><label style="font-size:10px">Start</label><input type="number" min="0" id="f_ec_${k}_s" value="${r.start??ds}" ${ed?'disabled':''} style="width:70px"></div><div><label style="font-size:10px">Qty</label><input type="number" min="0" id="f_ec_${k}_q" value="${r.quantity??dq}" ${ed?'disabled':''} style="width:70px"></div></div>`};
+      return `<div id="ecBox" style="display:${e.type==='EDGE_COUNTER'?'contents':'none'}"><div class="section">Edge Counter — register blocks (one tag auto-created per address; DI/coils become COUNTER tags)</div>${rng('discrete',0,8)}${rng('coil',0,0)}${rng('holding',0,0)}${rng('input',0,0)}</div>`})()}
+    </div>`,async()=>{
+      const num=v=>v===''?undefined:Number(v);const proto=val('f_proto');
+      const dto={name:val('f_name'),type:val('f_type'),protocol:proto,...scopeDto('f'),unitId:num(val('f_unit')),pollIntervalMs:num(val('f_poll'))};
+      if(proto==='MODBUS_RTU'){dto.serialPort=val('f_serial')||null;dto.baudRate=num(val('f_baud'));dto.parity=val('f_parity');dto.stopBits=num(val('f_stop'))}
+      else{dto.ipAddress=val('f_ip')||null;dto.port=num(val('f_port'))}
+      if(dto.type==='EDGE_COUNTER'&&!ed){const rg=k=>({start:Number(val('f_ec_'+k+'_s'))||0,quantity:Number(val('f_ec_'+k+'_q'))||0});dto.edgeCounter={discrete:rg('discrete'),coil:rg('coil'),holding:rg('holding'),input:rg('input')}}
+      if(ed){await api('/devices/'+e.id,{method:'PATCH',body:JSON.stringify(dto)})}else{dto.deviceCode=val('f_code');if(!dto.deviceCode||!dto.name)throw new Error('Code and name required');await api('/devices',{method:'POST',body:JSON.stringify(dto)})}closeModal();loadDevices()})}
+  async function delDevice(id,name){if(!confirm('Delete device '+name+'?'))return;await api('/devices/'+id,{method:'PATCH',body:JSON.stringify({isActive:false})});loadDevices()}
+
+  // Tags
+  async function loadTags(){try{const[tags,devs,machines,lines,areas]=await Promise.all([api('/tags'),api('/devices'),api('/machines'),api('/lines'),api('/areas')]);cache.tags=tags||[];cache.devices=devs||[];cache.machines=machines||[];cache.lines=lines||[];cache.areas=areas||[];renderTags()}catch(e){document.getElementById('tagRows').innerHTML=emptyRow(7,e.message)}}
+  function goTagPage(p){tagPage=p;renderTags()}
+  function renderTags(){const all=cache.tags;const pages=Math.max(1,Math.ceil(all.length/PAGE));if(tagPage>pages)tagPage=pages;const t=all.slice((tagPage-1)*PAGE,tagPage*PAGE);
+    document.getElementById('tagKpis').innerHTML=kpi('Total Tags',all.length)+kpi('Counters',all.filter(x=>x.tagType==='COUNTER').length,'brand')+kpi('Mapped',all.filter(x=>x.counterRole&&x.counterRole!=='NONE').length,'good');
+    document.getElementById('tagRows').innerHTML=t.map(x=>{const r=x.counterRole,dev=cache.devices.find(d=>d.id===x.deviceId);return`<tr>
+      <td><div class="mono" style="color:#8fb3ae;font-weight:600">${esc(x.code)}</div><div style="color:hsl(var(--muted-fg));font-size:12px">${esc(x.name)}</div></td>
+      <td>${esc(dev?.name||x.device?.name||'—')}</td>
+      <td><span class="tg neutral">${esc(x.tagType)}</span> ${r&&r!=='NONE'?`<span class="tg ${r}">${r}</span>`:''}</td>
+      <td class="mono">${esc(x.registerType||'')} ${esc(x.address||'')}</td>
+      <td class="mono val" id="tv_${x.id}">${esc(x.currentValue?.value??'—')}</td>
+      <td id="tt_${x.id}" style="color:hsl(var(--muted-fg))">${timeAgo(x.currentValue?.timestamp)}</td>
+      <td style="text-align:right;white-space:nowrap"><button class="ghost sm" onclick='openTagForm(${JSON.stringify(x)})'>Edit</button> <button class="danger sm" onclick="delTag('${x.id}','${esc(x.name)}')">Delete</button></td></tr>`}).join('')||emptyRow(7,'No tags');
+    document.getElementById('tagPager').innerHTML=pager(tagPage,all.length,'goTagPage')}
+  async function pollTagValues(){try{const live=await api('/live');const map={};live.forEach(v=>map[v.tagId]=v);
+    cache.tags.forEach(x=>{const vc=document.getElementById('tv_'+x.id),tc=document.getElementById('tt_'+x.id);if(!vc)return;const lv=map[x.id];if(!lv)return;
+      const nv=String(lv.value);if(prevVals[x.id]!==undefined&&prevVals[x.id]!==nv){vc.classList.remove('flash');void vc.offsetWidth;vc.classList.add('flash')}
+      prevVals[x.id]=nv;vc.textContent=nv;if(tc)tc.textContent=timeAgo(lv.timestamp)})}catch{}}
+  function deviceOpts(sel){return'<option value="">— none —</option>'+cache.devices.map(d=>`<option value="${d.id}" ${d.id===sel?'selected':''}>${esc(d.name)}</option>`).join('')}
+  function selOpts(a,sel){return a.map(o=>`<option ${o===sel?'selected':''}>${o}</option>`).join('')}
+  function selOpts2(pairs,sel){return pairs.map(([v,l])=>`<option value="${v}" ${v===sel?'selected':''}>${l}</option>`).join('')}
+  function openTagForm(t){const e=t||{},ed=!!t;openModal((ed?'Edit':'Add')+' Tag',`<div class="grid2">
+    <div><label>Tag Code *</label><input id="f_code" value="${esc(e.code||'')}" ${ed?'disabled':''} placeholder="CNT_GOOD_01"></div>
+    <div><label>Name *</label><input id="f_name" value="${esc(e.name||'')}"></div>
+    <div><label>Tag Type</label><select id="f_ttype" onchange="document.getElementById('counterBox').style.display=this.value==='COUNTER'?'contents':'none'">${selOpts(['MEASUREMENT','COUNTER','STATUS','SETPOINT','ALARM','EVENT','ENERGY'],e.tagType||'MEASUREMENT')}</select></div>
+    <div><label>Data Type</label><select id="f_dtype">${selOpts(['INT','FLOAT','BOOL','STRING','TIMESTAMP'],e.dataType||'INT')}</select></div>
+    <div><label>Source Device</label><select id="f_device">${deviceOpts(e.deviceId)}</select></div>
+    <div><label>Unit</label><input id="f_unit" value="${esc(e.unit||'')}" placeholder="pcs, °C"></div>
+    ${scopeSelect('f',e)}
+    <div class="section">Modbus binding</div>
+    <div><label>Register Address</label><input id="f_addr" value="${esc(e.address||'')}" placeholder="100"></div>
+    <div><label>Register Type</label><select id="f_rtype">${selOpts(['HOLDING','INPUT','COIL','DISCRETE'],e.registerType||'HOLDING')}</select></div>
+    <div><label>Word Count</label><select id="f_wc">${selOpts(['1','2'],String(e.wordCount||1))}</select></div>
+    <div><label>Word Order</label><select id="f_wo">${selOpts(['BIG','LITTLE'],e.wordOrder||'BIG')}</select></div>
+    <div><label>Scale Factor</label><input id="f_scale" value="${e.scaleFactor??''}" placeholder="1"></div>
+    <div><label>Offset</label><input id="f_offset" value="${e.offset??''}" placeholder="0"></div>
+    <div id="counterBox" style="display:${e.tagType==='COUNTER'?'contents':'none'}"><div class="section">Counter mapping — +1 per edge → running Job Order</div>
+      <div><label>Counter Role</label><select id="f_role">${selOpts(['NONE','TOTAL','GOOD','BAD'],e.counterRole||'NONE')}</select></div>
+      <div><label>Edge Trigger</label><select id="f_edge">${selOpts(['RISING','FALLING','CHANGE','TOTALIZER'],e.edgeType||'RISING')}</select></div></div>
+    <div class="section">Publishing &amp; historian — emit on change or by fixed rate</div>
+    <div><label>MQTT publish</label><select id="f_mqmode">${selOpts2([['CHANGE','On change'],['RATE','By rate (interval)']],e.mqttPublishMode||'CHANGE')}</select></div>
+    <div><label>MQTT interval (sec)</label><input id="f_mqrate" value="${e.mqttPublishRateSec??''}" placeholder="0"></div>
+    <div><label>Historian</label><select id="f_hmode">${selOpts2([['CHANGE','On change'],['RATE','By rate (interval)']],e.historizationMode||'CHANGE')}</select></div>
+    <div><label>Historian interval (sec)</label><input id="f_hrate" value="${e.historizationRateSec??''}" placeholder="60"></div>
+    <div><label>Deadband (min change)</label><input id="f_deadband" value="${e.deadband??''}" placeholder="blank = any change"></div>
+    <div class="section">Signal interpretation — how this wire becomes a machine state</div>
+    <div><label>Machine status driver</label><select id="f_isstatus" onchange="document.getElementById('sigBox').style.display=this.value==='true'?'contents':'none'">${selOpts2([["false","No"],["true","Yes"]], e.isMachineStatus?"true":"false")}</select></div>
+    <div id="sigBox" style="display:${e.isMachineStatus?"contents":"none"}">
+      <div><label>Signal role</label><select id="f_sigrole">${selOpts2([["","— plain status word / bit —"],["RUN_MODE","Run Mode (ON = running or ready)"],["RUN_MODE_PULSED","Run Mode pulsed (steady / pulsing / off)"],["PROCESSING","Processing (product actually being worked)"],["INFEED_AVAILABLE","Infeed available"],["OUTFEED_BLOCKED","Outfeed blocked"]], e.signalRole||"")}</select></div>
+      <div><label>Status map (INT only)</label><input id="f_statusmap" value="${e.statusMap?esc(JSON.stringify(e.statusMap)):""}" placeholder='{"0":"IDLE","1":"RUNNING"}'></div>
+      <div><label>Pulse window (ms)</label><input id="f_pulsewin" value="${e.pulseWindowMs??""}" placeholder="6000"></div>
+      <div><label>Pulse min edges</label><input id="f_pulseedges" value="${e.pulseMinEdges??""}" placeholder="4"></div>
+      <div><label>Idle before Starved (ms)</label><input id="f_idlems" value="${e.idleThresholdMs??""}" placeholder="300000"></div>
+    </div>
+    </div>`,async()=>{const num=v=>v===''?undefined:Number(v),isC=val('f_ttype')==='COUNTER';
+      const dto={name:val('f_name'),tagType:val('f_ttype'),dataType:val('f_dtype'),deviceId:val('f_device')||null,unit:val('f_unit')||null,...scopeDto('f'),address:val('f_addr')||null,registerType:val('f_rtype'),wordCount:num(val('f_wc')),wordOrder:val('f_wo'),scaleFactor:num(val('f_scale')),offset:num(val('f_offset')),counterRole:isC?val('f_role'):'NONE',edgeType:isC?val('f_edge'):'RISING',mqttPublishMode:val('f_mqmode'),mqttPublishRateSec:num(val('f_mqrate')),historizationMode:val('f_hmode'),historizationRateSec:num(val('f_hrate')),deadband:num(val('f_deadband')),isMachineStatus:val('f_isstatus')==='true',signalRole:val('f_isstatus')==='true'&&val('f_sigrole')?val('f_sigrole'):null,statusMap:(()=>{const v=val('f_statusmap');if(!v)return null;try{return JSON.parse(v)}catch{throw new Error('Status map is not valid JSON')}})(),pulseWindowMs:num(val('f_pulsewin')),pulseMinEdges:num(val('f_pulseedges')),idleThresholdMs:num(val('f_idlems'))};
+      if(ed){await api('/tags/'+e.id,{method:'PATCH',body:JSON.stringify(dto)})}else{dto.code=val('f_code');if(!dto.code||!dto.name)throw new Error('Code and name required');await api('/tags',{method:'POST',body:JSON.stringify(dto)})}closeModal();loadTags()})}
+  async function delTag(id,name){if(!confirm('Delete tag '+name+'?'))return;await api('/tags/'+id,{method:'DELETE'});loadTags()}
+
+  // Signal Rules — signal interpretation, state semantics and alarm limits.
+  // Editable at the panel because commissioning happens at the cabinet, often
+  // with no route to the server.
+  const STATES=["RUNNING","IDLE","STOPPED","BREAKDOWN","PLANNED_STOP","SETUP","CHANGEOVER","MAINTENANCE","STARVED","BLOCKED","OFFLINE"];
+  const CATS=["MECHANICAL","ELECTRICAL","MATERIAL","PROCESS","QUALITY","CHANGEOVER","PLANNED_MAINTENANCE","PLANNED_BREAK","EXTERNAL","OTHER"];
+  const SEVS=["CRITICAL","HIGH","MEDIUM","LOW","INFO"];
+  const CONDS=["GT","GTE","LT","LTE","EQ","NEQ"];
+  async function loadSignals(){try{const[tags,rules,alarms,machines]=await Promise.all([api('/tags'),api('/state-rules'),api('/alarm-definitions'),api('/machines')]);
+    cache.tags=tags||[];cache.rules=rules||[];cache.alarms=alarms||[];cache.machines=machines||[];renderSignals();loadPulse()}
+    catch(e){document.getElementById('ruleRows').innerHTML=emptyRow(9,e.message)}}
+
+  // ── Pulse detector ────────────────────────────────────────────────────────
+  // A RUN_MODE_PULSED signal that never fires and one that is genuinely steady
+  // are identical everywhere else in the system: the machine reads RUNNING both
+  // ways. Standing at the machine and flashing the lamp therefore produced no
+  // feedback at all, which left a wiring fault, a stale gateway build and a poll
+  // too slow to see the flash impossible to tell apart. This card separates them.
+  async function loadPulse(){
+    const card=document.getElementById('pulseCard');
+    try{
+      const rows=await api('/signals/pulse');
+      if(!rows||!rows.length){card.style.display='none';return}
+      card.style.display='';
+      document.getElementById('pulseRows').innerHTML=rows.map(r=>{
+        const d=r.detector;
+        // Ordered so the first true statement is the one worth acting on.
+        let verdict,cls;
+        if(!r.isActive){verdict='Tag is inactive — nothing reads it';cls='off'}
+        else if(!r.drivesMachineState){verdict='Not set as the machine-status signal — read, but nothing acts on it';cls='off'}
+        else if(!d){verdict='Never sampled since start-up — check the device and that this build supports pulsed signals';cls='off'}
+        else if(d.fastestResolvableFlashHz!==null&&d.fastestResolvableFlashHz<1){
+          verdict='Sampled every '+d.observedSampleMs+' ms — too slow to see a 1 Hz lamp. Poll at 250 ms or faster.';cls='off'}
+        else if(!d.everSawAnEdge){verdict='Bit has never changed — the signal is not reaching this input';cls='off'}
+        else if(d.pulsing){verdict='Pulsing — machine reported as stopped';cls='on'}
+        else{verdict='Steady — machine reported as '+(d.level?'running':'alarm / e-stop');cls='neutral'}
+        const reading=d?(d.level?'HIGH':'LOW'):'—';
+        const edges=d?d.edgesInWindow+' / '+d.minEdges+' in '+d.windowMs+' ms':'—';
+        const rate=d&&d.observedSampleMs!==null
+          ?d.observedSampleMs+' ms <span style="color:hsl(var(--muted-fg))">(sees up to '+d.fastestResolvableFlashHz+' Hz)</span>'
+          :(r.devicePollIntervalMs?r.devicePollIntervalMs+' ms configured':'—');
+        return '<tr><td class="mono" style="color:#8fb3ae;font-weight:600">'+esc(r.code)+'</td>'
+          +'<td>'+esc(r.machine||'—')+'</td>'
+          +'<td class="mono val">'+reading+'</td>'
+          +'<td class="mono">'+edges+'</td>'
+          +'<td class="mono">'+rate+'</td>'
+          +'<td><span class="tg '+cls+'">'+esc(verdict)+'</span></td></tr>'
+      }).join('')
+    }catch{card.style.display='none'}
+  }
+  // ── Count balance ─────────────────────────────────────────────────────────
+  // Machines on one line count in different units, so their raw numbers cannot
+  // be compared. Everything here is converted to the SMALLEST rung the line
+  // uses, which keeps every conversion a multiplication and never rounds.
+  function fmtQty(n){
+    if(n===null||n===undefined)return '—';
+    const r=Math.round(n*1000)/1000;
+    return r.toLocaleString(undefined,{maximumFractionDigits:3});
+  }
+
+  async function loadBalance(){
+    let runs;
+    try{runs=await api('/count-balance')}catch(e){
+      document.getElementById('balRuns').innerHTML=
+        '<div class="card"><div style="padding:16px;color:hsl(var(--muted-fg))">'+esc(e.message||'Could not load')+'</div></div>';
+      return;
+    }
+    const host=document.getElementById('balRuns');
+    if(!runs.length){
+      host.innerHTML='<div class="card"><div style="padding:16px;color:hsl(var(--muted-fg))">'+
+        'No job order is executing. Counts are compared across the steps of a running order, so start one to see the balance.'+
+        '</div></div>';
+      return;
+    }
+    host.innerHTML=runs.map(renderRun).join('');
+  }
+
+  function renderRun(r){
+    const u=esc(r.commonUnit);
+    // The ladder is shown, not just applied: a wrong conversion is nearly
+    // impossible to spot inside a total, and obvious next to "1 CARTON = 4 INNER".
+    // Stated in the unit actually being used, and rungs that convert 1-for-1
+    // are left out — "1 INNER = 1 INNER" is noise standing where a check should be.
+    const base=r.ladder[r.commonUnit]||1;
+    const ladder=['PIECE','INNER','CARTON','PALLET']
+      .filter(k=>k!==r.commonUnit&&r.ladder[k]>base)
+      .map(k=>'1 '+k+' = '+fmtQty(r.ladder[k]/base)+' '+r.commonUnit)
+      .join(' &nbsp;·&nbsp; ')||'every step already counts in '+r.commonUnit;
+
+    const rows=r.steps.map((st,i)=>{
+      const name=esc(st.machineCode||st.machineName||st.operationName||('Step '+st.sequenceOrder));
+      if(st.unconvertible){
+        return '<tr><td>'+esc(String(st.sequenceOrder))+'</td><td><b>'+name+'</b><div class="sub2">'+esc(st.operationName)+'</div></td>'+
+          '<td class="mono">'+fmtQty(st.good)+'</td><td class="mono">'+fmtQty(st.reject)+'</td>'+
+          '<td class="mono">'+fmtQty(st.total)+'</td><td>'+esc(st.unit)+'</td>'+
+          '<td colspan="4" style="color:hsl(var(--warn,38 92% 50%))">unit &ldquo;'+esc(st.unit)+'&rdquo; is not on the packaging ladder &mdash; cannot be compared</td></tr>';
+      }
+      let diff='<span style="color:hsl(var(--muted-fg))">&mdash;</span>';
+      if(i>0&&st.diffFromPrev!==null){
+        const d=st.diffFromPrev;
+        // Zero is the expected answer and should look calm. A shortfall is the
+        // one worth the eye; a negative means more came out than went in, which
+        // material cannot do, so it is flagged harder.
+        const col=Math.abs(d)<0.0005?'hsl(var(--muted-fg))':(d>0?'hsl(38 92% 50%)':'hsl(0 84% 60%)');
+        const sign=d>0?'+':'';
+        diff='<b style="color:'+col+'">'+sign+fmtQty(d)+'</b>';
+      }
+      return '<tr><td>'+esc(String(st.sequenceOrder))+'</td>'+
+        '<td><b>'+name+'</b><div class="sub2">'+esc(st.operationName)+'</div></td>'+
+        '<td class="mono">'+fmtQty(st.good)+'</td>'+
+        '<td class="mono">'+fmtQty(st.reject)+'</td>'+
+        '<td class="mono">'+fmtQty(st.total)+'</td>'+
+        '<td>'+esc(st.unit)+'</td>'+
+        '<td class="mono">'+fmtQty(st.goodCommon)+'</td>'+
+        '<td class="mono">'+fmtQty(st.totalCommon)+'</td>'+
+        '<td class="mono">'+diff+'</td></tr>';
+    }).join('');
+
+    return '<div class="card"><div class="card-h"><span class="ttl">'+
+      esc(r.orderNumber||r.workOrderId)+
+      (r.skuCode?' &nbsp;<span style="font-weight:500;color:hsl(var(--muted-fg))">'+esc(r.skuCode)+' &mdash; '+esc(r.skuName||'')+'</span>':'')+
+      '</span><span style="color:hsl(var(--muted-fg));font-size:11.5px">common unit: <b>'+esc(r.commonUnit)+'</b></span></div>'+
+      '<div style="padding:0 14px 10px;color:hsl(var(--muted-fg));font-size:11px">'+ladder+'</div>'+
+      '<div class="tbl-wrap"><table><thead><tr>'+
+      '<th>#</th><th>Machine</th>'+
+      '<th class="mono">Good</th><th class="mono">Bad</th><th class="mono">Total</th><th>Unit</th>'+
+      '<th class="mono">Good ('+esc(r.commonUnit)+')</th>'+
+      '<th class="mono">Total ('+esc(r.commonUnit)+')</th>'+
+      '<th class="mono">Diff vs previous</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  }
+
+  // ── Line balance ──────────────────────────────────────────────────────────
+  // Shows what each machine counted, what the conveyor between them can explain,
+  // and what it could not. The last of those is the only part ever corrected.
+  const LB_VERDICT={
+    ANCHOR:['المرجع','var(--gold,38 92% 50%)'],
+    BALANCED:['متوازن','hsl(142 60% 40%)'],
+    CORRECTED:['صُحّح','hsl(38 92% 45%)'],
+    CLAMPED:['بلغ السقف','hsl(0 84% 58%)'],
+    UNCONFIGURED:['غير مضبوط','hsl(var(--muted-fg))'],
+    DISABLED:['موقوف','hsl(var(--muted-fg))'],
+  };
+
+  async function loadLineBal(){
+    try{
+      const [runs,cfg,health]=await Promise.all([
+        api('/line-balance'),api('/line-balance/config'),api('/counter-health')]);
+      renderCounterHealth(health);
+      renderLbRuns(runs);
+      if(!lbEditing)renderLbCfg(cfg);
+    }catch(e){
+      document.getElementById('lbRuns').innerHTML=
+        '<div class="card"><div style="padding:16px;color:hsl(var(--muted-fg))">'+esc(e.message||'Could not load')+'</div></div>';
+    }
+  }
+
+  const CH_VERDICT={
+    OK:['سليم','hsl(142 60% 40%)'],
+    MARGINAL:['على الحافّة','hsl(38 92% 45%)'],
+    ALIASING:['أقصر من العيّنة','hsl(0 84% 58%)'],
+    UNKNOWN:['لم يُقَس بعد','hsl(var(--muted-fg))'],
+  };
+
+  function renderCounterHealth(rows){
+    const host=document.getElementById('chRows');
+    if(!host)return;
+    if(!rows.length){
+      host.innerHTML='<tr><td colspan="10" style="color:hsl(var(--muted-fg))">'+
+        'No counter has been observed yet — a signal has to change before it can be measured.</td></tr>';
+      return;
+    }
+    host.innerHTML=rows.map(d=>{
+      const v=CH_VERDICT[d.verdict]||CH_VERDICT.UNKNOWN;
+      // A peer share far below 100% on a machine with two counters is the
+      // finding: same product, same rate, so the gap is the sensor.
+      const peer=d.peerSharePct===null?'—'
+        :'<b style="color:'+(d.peerSharePct>=90?'hsl(142 60% 40%)':d.peerSharePct>=60?'hsl(38 92% 45%)':'hsl(0 84% 58%)')+'">'
+          +d.peerSharePct+'%</b>';
+      const pulse=(d.medianActiveMs===null?'—':d.medianActiveMs+'ms')
+        +' / '+(d.shortestActiveMs===null?'—':d.shortestActiveMs+'ms'
+          +(d.shortestActiveSamples!==null?' ('+d.shortestActiveSamples+' smp)':''));
+      const est=d.estimatedPulseMs!==null
+        ? '<div class="sub2" style="color:hsl(0 84% 58%)">النبضة الحقيقيّة ~'+d.estimatedPulseMs+'ms — أقصر من أن تُلتقَط</div>'
+        : '';
+      return '<tr>'+
+        '<td><b>'+esc(d.code)+'</b>'+est+'</td>'+
+        '<td>'+esc(d.machineCode||'—')+'</td>'+
+        '<td class="mono">'+esc(d.counterRole||'—')+'</td>'+
+        '<td class="mono">'+esc(d.address===null?'—':String(d.address))+'</td>'+
+        '<td class="mono">'+(d.edgesPerMin===null?'—':fmtQty(d.edgesPerMin))+'</td>'+
+        '<td class="mono">'+peer+'</td>'+
+        '<td class="mono">'+(d.activePct===null?'—':d.activePct+'%')+'</td>'+
+        '<td class="mono">'+pulse+'</td>'+
+        '<td class="mono">'+(d.sampleIntervalMs===null?'—':d.sampleIntervalMs+'ms')+'</td>'+
+        '<td><span style="color:'+v[1]+';font-weight:600;font-size:11.5px">'+v[0]+'</span></td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  function renderLbRuns(runs){
+    const host=document.getElementById('lbRuns');
+    if(!runs.length){
+      host.innerHTML='<div class="card"><div style="padding:16px;color:hsl(var(--muted-fg))">'+
+        'No job order is executing — a balance compares the steps of a running order.</div></div>';
+      return;
+    }
+    host.innerHTML=runs.map(r=>{
+      const u=esc(r.commonUnit);
+      const rows=r.steps.map(st=>{
+        const v=LB_VERDICT[st.verdict]||['—','hsl(var(--muted-fg))'];
+        const name=esc(st.machineCode||st.operationName||('#'+st.sequenceOrder));
+        // A correction of zero is the good outcome and should read as calm; the
+        // eye belongs on the ones that moved.
+        const corr=Math.abs(st.correction)<0.0005
+          ? '<span style="color:hsl(var(--muted-fg))">0</span>'
+          : '<b style="color:'+(st.correction>0?'hsl(38 92% 45%)':'hsl(0 84% 58%)')+'">'+
+            (st.correction>0?'+':'')+fmtQty(st.correction)+'</b>';
+        const clampNote=st.verdict==='CLAMPED'
+          ? '<div class="sub2" style="color:hsl(0 84% 58%)">طُلب '+fmtQty(st.requestedCorrection)+' — قُصَّ عند '+st.maxCorrectionPct+'%</div>'
+          : '';
+        return '<tr>'+
+          '<td>'+esc(String(st.sequenceOrder))+'</td>'+
+          '<td><b>'+name+'</b><div class="sub2">'+esc(st.operationName)+'</div></td>'+
+          '<td class="mono">'+fmtQty(st.goodCommon)+'</td>'+
+          '<td class="mono">'+(st.explainedByBuffer===null?'—':fmtQty(st.explainedByBuffer))+
+          (st.bufferToNextQty!==null&&st.bufferUnit&&st.bufferCommon!==null
+            ? '<div class="sub2">سعة '+fmtQty(st.bufferToNextQty)+' '+esc(st.bufferUnit)+
+              ' = '+fmtQty(st.bufferCommon)+'</div>' : '')+'</td>'+
+          '<td class="mono">'+(st.unexplained===null?'—':fmtQty(st.unexplained))+'</td>'+
+          '<td class="mono">'+fmtQty(st.balancedCommon)+'</td>'+
+          '<td class="mono">'+corr+'</td>'+
+          '<td><span style="color:'+v[1]+';font-weight:600;font-size:11.5px">'+v[0]+'</span>'+
+            '<div class="sub2">'+esc(st.reason)+'</div>'+clampNote+'</td>'+
+          '</tr>';
+      }).join('');
+      const total=r.totalCorrection;
+      return '<div class="card"><div class="card-h"><span class="ttl">'+esc(r.orderNumber||r.workOrderId)+
+        '</span><span style="color:hsl(var(--muted-fg));font-size:11.5px">'+
+        'وحدة الأساس <b>'+u+'</b> · مجموع التصحيح <b>'+(total>0?'+':'')+fmtQty(total)+'</b></span></div>'+
+        '<div class="tbl-wrap"><table><thead><tr>'+
+        '<th>#</th><th>Machine</th><th class="mono">Counted ('+u+')</th>'+
+        '<th class="mono">In buffer</th><th class="mono">Unexplained</th>'+
+        '<th class="mono">Balanced</th><th class="mono">Correction</th><th>Verdict</th>'+
+        '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+    }).join('');
+  }
+
+  // While a field has focus the poll must not redraw the table under the cursor.
+  let lbEditing=false;
+
+  function renderLbCfg(rows){
+    document.getElementById('lbCfg').innerHTML=rows.map(c=>{
+      const id=esc(c.machineId);
+      const chk=(k,v)=>'<input type="checkbox" id="lb_'+k+'_'+id+'"'+(v?' checked':'')+'>';
+      const num=(k,v,ph)=>'<input id="lb_'+k+'_'+id+'" value="'+(v===null||v===undefined?'':v)+
+        '" placeholder="'+ph+'" style="width:80px" onfocus="lbEditing=true">';
+      return '<tr>'+
+        '<td><b>'+esc(c.code)+'</b><div class="sub2">'+esc(c.name)+'</div></td>'+
+        '<td>'+chk('en',c.enabled)+'</td>'+
+        '<td>'+chk('an',c.isAnchor)+'</td>'+
+        '<td>'+(c.nextMachineCode
+            ? '<div class="sub2" style="margin-bottom:3px">'+esc(c.code)+' &rarr; '+esc(c.nextMachineCode)+'</div>'
+            : '<div class="sub2" style="margin-bottom:3px">آخر الخطّ — اتركها فارغة</div>')+
+          num('buf',c.bufferToNextQty,'not set')+
+          '<select id="lb_bu_'+id+'" style="width:86px;margin-inline-start:5px" onfocus="lbEditing=true">'+
+          ['PIECE','INNER','CARTON','PALLET'].map(u=>
+            '<option value="'+u+'"'+((c.bufferUnit||'')===u?' selected':'')+'>'+u+'</option>').join('')+
+          '</select></td>'+
+        '<td>'+num('tr',c.transitSec,'—')+'</td>'+
+        '<td>'+num('mx',c.maxCorrectionPct,'10')+'</td>'+
+        '<td>'+chk('ap',c.applyAdjustment)+'</td>'+
+        '<td><button class="sm" onclick="saveLb(\''+id+'\')">حفظ</button></td>'+
+        '</tr>';
+    }).join('');
+  }
+
+  function lbMsg(text,colour){
+    const m=document.getElementById('lbMsg');
+    if(!m)return;
+    m.textContent=text; m.style.color=colour;
+    clearTimeout(m._t); m._t=setTimeout(()=>{m.textContent=''},4000);
+  }
+
+  async function saveLb(machineId){
+    const g=k=>document.getElementById('lb_'+k+'_'+machineId);
+    const numOrNull=el=>{const v=el.value.trim();return v===''?null:Number(v)};
+    try{
+      await api('/line-balance/config/'+machineId,{method:'PATCH',body:JSON.stringify({
+        enabled:g('en').checked,
+        isAnchor:g('an').checked,
+        bufferToNextQty:numOrNull(g('buf')),
+        bufferUnit:g('bu').value,
+        transitSec:numOrNull(g('tr')),
+        maxCorrectionPct:Number(g('mx').value.trim()||10),
+        applyAdjustment:g('ap').checked,
+      })});
+      lbEditing=false;
+      lbMsg('✓ saved — in effect within seconds','hsl(var(--good))');
+      loadLineBal();
+    }catch(e){lbMsg(e.message||'save failed','hsl(var(--bad))')}
+  }
+
+  function renderSignals(){
+    const sig=cache.tags.filter(x=>x.isMachineStatus||x.signalRole);
+    document.getElementById('sigRows').innerHTML=sig.map(x=>`<tr>
+      <td class="mono" style="color:#8fb3ae;font-weight:600">${esc(x.code)}</td>
+      <td>${esc((x.machine&&x.machine.code)||'—')}</td>
+      <td class="mono">${x.registerType==='DISCRETE'?'DI '+esc(x.address):esc(x.registerType||'')+' '+esc(x.address||'')}</td>
+      <td>${x.signalRole?`<span class="tg neutral">${esc(x.signalRole)}</span>`:'<span style="color:hsl(var(--muted-fg))">not set</span>'}</td>
+      <td style="color:hsl(var(--muted-fg))">${x.signalRole==='RUN_MODE_PULSED'?`${x.pulseWindowMs??6000} ms / ${x.pulseMinEdges??4} edges`:x.signalRole==='PROCESSING'?`${Math.round((x.idleThresholdMs??300000)/1000)} s idle`:''}</td>
+    </tr>`).join('')||emptyRow(5,'No status signals bound yet — set a signal role on a tag in the Tag Browser.');
+    const yn=v=>v?'<span class="tg GOOD">YES</span>':'<span class="tg neutral">NO</span>';
+    document.getElementById('ruleRows').innerHTML=cache.rules.map(r=>`<tr style="${r.isActive===false?'opacity:.5':''}">
+      <td class="mono" style="font-weight:600">${esc(r.state)}</td>
+      <td>${r.machineId?esc((r.machine&&r.machine.code)||'machine'):'<span style="color:hsl(var(--muted-fg))">factory-wide</span>'}</td>
+      <td>${yn(r.isDowntime)}</td><td>${yn(r.isPlanned)}</td><td>${yn(r.affectsOEE)}</td>
+      <td class="mono">${esc(r.reasonCode||'—')}</td><td>${esc(r.category)}</td><td>${r.debounceSeconds??0}s</td>
+      <td style="text-align:right;white-space:nowrap"><button class="ghost sm" onclick='openStateRuleForm(${JSON.stringify(r)})'>Edit</button> <button class="danger sm" onclick="delStateRule('${r.id}','${esc(r.state)}')">Delete</button></td>
+    </tr>`).join('')||emptyRow(9,'No rules — the gateway falls back to its built-in defaults.');
+    document.getElementById('alarmRows').innerHTML=cache.alarms.map(a=>`<tr style="${a.isActive===false?'opacity:.5':''}">
+      <td><div class="mono" style="color:#8fb3ae;font-weight:600">${esc(a.code)}</div><div style="color:hsl(var(--muted-fg));font-size:12px">${esc(a.name)}</div></td>
+      <td class="mono">${esc((a.tag&&a.tag.code)||'—')}</td>
+      <td class="mono">${esc(a.condition||'GT')} ${a.threshold} ${esc((a.tag&&a.tag.unit)||'')}</td>
+      <td>${a.deadband??'—'}</td><td>${a.delaySeconds??0}s</td><td><span class="tg neutral">${esc(a.severity)}</span></td>
+      <td style="text-align:right;white-space:nowrap"><button class="ghost sm" onclick='openAlarmForm(${JSON.stringify(a)})'>Edit</button> <button class="danger sm" onclick="delAlarm('${a.id}','${esc(a.code)}')">Delete</button></td>
+    </tr>`).join('')||emptyRow(7,'No alarm rules — nothing on a tag value will raise an alarm until one is added.')}
+  function openStateRuleForm(r){const e=r||{},ed=!!r;openModal((ed?'Edit':'Add')+' State Rule',`<div class="grid2">
+    <div><label>State</label><select id="r_state" ${ed?'disabled':''}>${selOpts(STATES,e.state||'BREAKDOWN')}</select></div>
+    <div><label>Scope</label><select id="r_machine" ${ed?'disabled':''}><option value="">Factory-wide</option>${cache.machines.map(m=>`<option value="${m.id}" ${m.id===e.machineId?'selected':''}>${esc(m.code)} — ${esc(m.name)}</option>`).join('')}</select></div>
+    <div><label>Open a downtime event</label><select id="r_dt">${selOpts2([['true','Yes'],['false','No']],e.isDowntime===false?'false':'true')}</select></div>
+    <div><label>Planned stop</label><select id="r_pl">${selOpts2([['false','No'],['true','Yes']],e.isPlanned?'true':'false')}</select></div>
+    <div><label>Charged against OEE</label><select id="r_oee">${selOpts2([['true','Yes'],['false','No — external loss']],e.affectsOEE===false?'false':'true')}</select></div>
+    <div><label>Reason code</label><input id="r_reason" value="${esc(e.reasonCode||'')}" placeholder="UNPLANNED_BREAKDOWN"></div>
+    <div><label>Category</label><select id="r_cat">${selOpts(CATS,e.category||'OTHER')}</select></div>
+    <div><label>Debounce (sec)</label><input id="r_deb" value="${e.debounceSeconds??0}" placeholder="0"></div>
+    <div style="grid-column:1/-1"><label>Description</label><input id="r_desc" value="${esc(e.description||'')}"></div>
+    <div style="grid-column:1/-1" class="hint">Charged against OEE off means the time is recorded but removed from the availability denominator — for losses caused outside this machine, such as waiting for material.</div>
+    </div>`,async()=>{const dto={state:ed?e.state:val('r_state'),machineId:ed?(e.machineId||null):(val('r_machine')||null),isDowntime:val('r_dt')==='true',isPlanned:val('r_pl')==='true',affectsOEE:val('r_oee')==='true',reasonCode:val('r_reason')||null,category:val('r_cat'),debounceSeconds:Number(val('r_deb'))||0,description:val('r_desc')||null};
+      await api('/state-rules',{method:'POST',body:JSON.stringify(dto)});closeModal();loadSignals()})}
+  async function delStateRule(id,state){if(!confirm('Delete the '+state+' rule? It falls back to the factory rule, or to the gateway default.'))return;await api('/state-rules/'+id,{method:'DELETE'});loadSignals()}
+  function openAlarmForm(a){const e=a||{},ed=!!a;openModal((ed?'Edit':'Add')+' Alarm Rule',`<div class="grid2">
+    <div><label>Code *</label><input id="a_code" value="${esc(e.code||'')}" placeholder="TEMP_HIGH"></div>
+    <div><label>Name *</label><input id="a_name" value="${esc(e.name||'')}"></div>
+    <div style="grid-column:1/-1"><label>Tag *</label><select id="a_tag"><option value="">— select —</option>${cache.tags.map(x=>`<option value="${x.id}" ${x.id===e.tagId?'selected':''}>${esc(x.code)}${x.machine&&x.machine.code?' — '+esc(x.machine.code):''}${x.unit?' ('+esc(x.unit)+')':''}</option>`).join('')}</select></div>
+    <div><label>Condition</label><select id="a_cond">${selOpts(CONDS,e.condition||'GT')}</select></div>
+    <div><label>Threshold *</label><input id="a_thr" value="${e.threshold??''}"></div>
+    <div><label>Deadband</label><input id="a_dead" value="${e.deadband??''}" placeholder="blank = clears the moment it recovers"></div>
+    <div><label>Delay (sec)</label><input id="a_delay" value="${e.delaySeconds??0}" placeholder="0"></div>
+    <div><label>Severity</label><select id="a_sev">${selOpts(SEVS,e.severity||'HIGH')}</select></div>
+    <div><label>Category</label><input id="a_cat" value="${esc(e.category||'PROCESS')}"></div>
+    <div><label>Acknowledge automatically</label><select id="a_ack">${selOpts2([['false','No'],['true','Yes']],e.autoAck?'true':'false')}</select></div>
+    <div><label>Active</label><select id="a_act">${selOpts2([['true','Yes'],['false','No']],e.isActive===false?'false':'true')}</select></div>
+    <div style="grid-column:1/-1" class="hint">Delay suppresses a momentary spike. Deadband stops a value sitting on the limit from raising an event every poll.</div>
+    </div>`,async()=>{const dto={code:val('a_code'),name:val('a_name'),tagId:val('a_tag'),condition:val('a_cond'),threshold:val('a_thr'),deadband:val('a_dead')===''?null:Number(val('a_dead')),delaySeconds:Number(val('a_delay'))||0,severity:val('a_sev'),category:val('a_cat'),autoAck:val('a_ack')==='true',isActive:val('a_act')==='true'};
+      if(!dto.code||!dto.name||!dto.tagId)throw new Error('Code, name and tag are required');
+      if(dto.threshold===''||isNaN(Number(dto.threshold)))throw new Error('A numeric threshold is required, otherwise the alarm can never fire');
+      dto.threshold=Number(dto.threshold);
+      if(ed){await api('/alarm-definitions/'+e.id,{method:'PATCH',body:JSON.stringify(dto)})}else{await api('/alarm-definitions',{method:'POST',body:JSON.stringify(dto)})}closeModal();loadSignals()})}
+  async function delAlarm(id,code){if(!confirm('Delete the '+code+' alarm rule? Past events are kept.'))return;await api('/alarm-definitions/'+id,{method:'DELETE'});loadSignals()}
+
+  // Energy Meters
+  async function loadMeters(){
+    try{const[meters,templates,machines,lines,areas]=await Promise.all([api('/meters'),api('/meter-templates'),api('/machines'),api('/lines'),api('/areas')]);
+      cache.meters=meters||[];cache.templates=templates||[];cache.machines=machines||[];cache.lines=lines||[];cache.areas=areas||[];
+      const online=cache.meters.filter(m=>m.device?.status==='CONNECTED').length;
+      document.getElementById('meterKpis').innerHTML=kpi('Meters',cache.meters.length)+kpi('Connected',online,'good')+kpi('Templates',cache.templates.length,'brand');
+      document.getElementById('meterRows').innerHTML=cache.meters.map(m=>{const dv=m.device;const conn=dv?(dv.protocol==='MODBUS_RTU'?'serial':`${dv.protocol}`):'manual';const st=dv?.status||'—';return`<tr>
+        <td><div class="mono" style="color:#8fb3ae;font-weight:600">${esc(m.meterNumber)}</div><div style="color:hsl(var(--muted-fg));font-size:12px">${esc(m.name)}</div></td>
+        <td>${esc(m.model||m.templateKey||'—')}</td>
+        <td class="mono">${esc(conn)}</td>
+        <td><span class="tg ${st==='CONNECTED'?'on':'off'}"><span class="d"></span>${esc(st)}</span></td>
+        <td class="mono">${m._count?.tags??0}</td>
+        <td style="text-align:right;white-space:nowrap"><button class="ghost sm" onclick="meterTemplate('${m.id}')">Template</button></td></tr>`}).join('')||emptyRow(6,'No meters — add one');
+    }catch(e){document.getElementById('meterRows').innerHTML=emptyRow(6,e.message)}
+  }
+  function tplOpts(sel){return'<option value="">— none —</option>'+(cache.templates||[]).map(t=>`<option value="${t.key}" ${t.key===sel?'selected':''}>${esc(t.label)}</option>`).join('')}
+  function meterTemplate(id){const m=(cache.meters||[]).find(x=>x.id===id);
+    openModal('Apply Meter Template',`
+      <div><label>Register-map template</label><select id="mt_key">${tplOpts(m?.templateKey||'')}</select></div>
+      <p style="color:hsl(var(--muted-fg));font-size:12px;margin-top:8px;line-height:1.5">Creates the meter's ENERGY tags (voltage, current, power, PF, frequency, energy import/export) from the selected device's register map. Existing tags are kept — safe to re-apply.</p>`,
+      async()=>{const key=val('mt_key');if(!key)throw new Error('Select a template');
+        const r=await api('/meters/'+id+'/apply-template',{method:'POST',body:JSON.stringify({templateKey:key})});
+        closeModal();loadMeters();
+        alert(`Template ${key} applied — ${r.created} new tag(s) created.`+(r.created===0?'\n(All tags for this template already existed.)':''));
+      });}
+  function openMeterForm(){
+    openModal('Add Energy Meter',`<div class="grid2">
+      <div><label>Meter Number *</label><input id="m_num" placeholder="EM-PM-01"></div>
+      <div><label>Name *</label><input id="m_name" placeholder="Main incomer"></div>
+      <div><label>Unit</label><input id="m_unit" value="kWh"></div>
+      ${scopeSelect('m',{})}
+      <div><label>Template</label><select id="m_tpl">${tplOpts('')}</select></div>
+      <div><label>Protocol</label><select id="m_proto" onchange="document.getElementById('mtcp').style.display=this.value==='MODBUS_RTU'?'none':'contents';document.getElementById('mser').style.display=this.value==='MODBUS_RTU'?'contents':'none'">${selOpts2([['MODBUS','Modbus TCP'],['MODBUS_RTU_TCP','Modbus RTU over TCP'],['MODBUS_RTU','Modbus RTU (serial)']],'MODBUS')}</select></div>
+      <div id="mtcp" style="display:contents"><div><label>IP Address</label><input id="m_ip" placeholder="192.168.1.50"></div><div><label>Port</label><input id="m_port" value="502"></div></div>
+      <div id="mser" style="display:none"><div><label>Serial Port</label><input id="m_serial" placeholder="COM3"></div><div><label>Baud</label><input id="m_baud" value="9600"></div></div>
+      <div><label>Modbus Unit ID</label><input id="m_unit_id" value="1"></div>
+      <div><label>Model</label><input id="m_model" placeholder="METSEPM5110"></div>
+    </div>`,async()=>{
+      const num=v=>v===''?undefined:Number(v);const proto=val('m_proto');
+      const dto={meterNumber:val('m_num'),name:val('m_name'),type:'ELECTRICAL',unit:val('m_unit')||'kWh',...scopeDto('m'),templateKey:val('m_tpl')||null,model:val('m_model')||null,protocol:proto,unitId:num(val('m_unit_id'))};
+      if(proto==='MODBUS_RTU'){dto.serialPort=val('m_serial')||null;dto.baudRate=num(val('m_baud'))}else{dto.ipAddress=val('m_ip')||null;dto.port=num(val('m_port'))}
+      if(!dto.meterNumber||!dto.name)throw new Error('Meter number and name required');
+      await api('/meters',{method:'POST',body:JSON.stringify(dto)});closeModal();loadMeters();
+    });
+  }
+
+  // Settings
+  const SF=[['gatewayName','Gateway Name'],['factoryCode','Factory Code'],['databaseUrl','Database URL (Postgres)'],['mqttBrokerUrl','MQTT Broker URL'],['influxUrl','InfluxDB URL'],['influxToken','InfluxDB Token'],['influxOrg','InfluxDB Org'],['influxBucket','InfluxDB Bucket'],['mesPlatformUrl','MES Platform URL'],['defaultPollIntervalMs','Default Poll Interval (ms)']];
+  async function loadSettings(){try{const s=await api('/settings');document.getElementById('settingsForm').innerHTML=SF.map(([k,l])=>`<div><label>${l}</label><input id="set_${k}" value="${esc(s[k]??'')}" ${k==='influxToken'?'type="password"':''}></div>`).join('')}catch(e){document.getElementById('settingsForm').innerHTML='<div style="color:hsl(var(--bad))">'+e.message+'</div>'}}
+  function collectSettings(){const dto={};SF.forEach(([k])=>{let v=document.getElementById('set_'+k).value;if(k==='defaultPollIntervalMs')v=v===''?undefined:Number(v);dto[k]=v});return dto}
+  async function saveSettings(){const m=document.getElementById('settingsMsg');try{await api('/settings',{method:'PATCH',body:JSON.stringify(collectSettings())});m.textContent='✓ Saved. Restart to apply.';m.style.color='hsl(var(--good))'}catch(e){m.textContent=e.message;m.style.color='hsl(var(--bad))'}}
+  async function restartGateway(){const m=document.getElementById('settingsMsg');try{await api('/settings',{method:'PATCH',body:JSON.stringify(collectSettings())});await api('/restart',{method:'POST'});m.textContent='Restarting… reload in a few seconds.';m.style.color='hsl(var(--warn))'}catch(e){m.textContent=e.message;m.style.color='hsl(var(--bad))'}}
+
+  // Modal
+  function openModal(title,body,onSave){document.getElementById('modalRoot').innerHTML=`<div class="backdrop" onclick="if(event.target===this)closeModal()"><div class="modal"><h3>${title}</h3>${body}<div class="err" id="modalErr"></div><div class="modal-foot"><button class="ghost" onclick="closeModal()">Cancel</button><button id="modalSave">Save</button></div></div></div>`;
+    document.getElementById('modalSave').onclick=async()=>{try{await onSave()}catch(e){document.getElementById('modalErr').textContent=e.message}}}
+  function closeModal(){document.getElementById('modalRoot').innerHTML=''}
+
+  initTheme();
+  if(T.get())showApp();
+</script>
+</body>
+</html>

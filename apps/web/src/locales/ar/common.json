@@ -1,0 +1,264 @@
+{
+  "dataMode": {
+    "live": "مباشر",
+    "period": "فترة",
+    "liveHint": "قيمة لحظية — لا تتأثر بفلاتر الوقت / أمر الإنتاج / أمر العمل",
+    "periodHint": "بيانات محفوظة عبر الفترة المختارة — تتغيّر بفلاتر الوقت / أمر الإنتاج / أمر العمل"
+  },
+  "attach": {
+    "add": "إضافة ملف",
+    "uploaded": "تم رفع الملف",
+    "uploadFailed": "فشل الرفع",
+    "deleted": "تم حذف الملف",
+    "delete": "حذف",
+    "deleteFailed": "تعذّر حذف الملف",
+    "openFailed": "تعذّر فتح الملف",
+    "none": "لا توجد مرفقات بعد — أضِف صورًا أو ملفات.",
+    "noneReadonly": "لا توجد ملفات مرفقة.",
+    "instructions": "التعليمات والإرشادات",
+    "evidence": "الصور والملفات"
+  },
+  "picker": {
+    "searchMachines": "ابحث عن الماكينات...",
+    "noMachines": "لا توجد ماكينات",
+    "searchWorkCenters": "ابحث عن مراكز العمل...",
+    "noResults": "لا توجد نتائج",
+    "manage": "إدارة {{label}}",
+    "noneDefined": "لا يوجد {{label}} معرّف بعد.",
+    "select": "اختر…",
+    "search": "بحث…",
+    "noMatches": "لا توجد تطابقات"
+  },
+  "charts": {
+    "currentShift": "الوردية الحالية",
+    "activeAlarms": "الإنذارات النشطة",
+    "noActiveAlarms": "لا توجد إنذارات نشطة",
+    "allNormal": "جميع الأنظمة تعمل بشكل طبيعي",
+    "oee": "الكفاءة الكلية",
+    "live": "مباشر",
+    "machineStatusGrid": "شبكة حالة الماكينات",
+    "realtimeOverview": "نظرة عامة على المعدات لحظياً",
+    "qualityTrend": "اتجاه الجودة",
+    "fpyDefects": "عائد أول تمرير ومعدلات العيوب",
+    "productionOutput": "إنتاج الإنتاج",
+    "actualVsTarget": "الفعلي مقابل المستهدف مع الكفاءة",
+    "oeeAnalysis": "تحليل الكفاءة الكلية",
+    "oeeFull": "الفعالية الكلية للمعدات",
+    "availability": "الجاهزية",
+    "performance": "الأداء",
+    "quality": "الجودة",
+    "mttrMtbf": "متوسط زمن الإصلاح مقابل متوسط الزمن بين الأعطال",
+    "downtimePareto": "باريتو التوقفات",
+    "downtimeParetoSub": "أهم أسباب التوقف (تحليل باريتو)",
+    "mttrMtbfTitle": "اتجاهات MTTR و MTBF",
+    "gRows": "الصفوف",
+    "gTimeScale": "المقياس الزمني",
+    "gActions": "إجراءات",
+    "gOrders": "الأوامر",
+    "gResources": "الموارد",
+    "gSupply": "العرض",
+    "gDemand": "الطلب",
+    "worldClass": "عالمي المستوى",
+    "production": {
+      "actualOutput": "الإنتاج الفعلي",
+      "target": "المستهدف",
+      "efficiencyPct": "الكفاءة ٪",
+      "units": "وحدات"
+    },
+    "qualityTrendSeries": {
+      "fpy": "عائد أول تمرير ٪",
+      "rework": "إعادة العمل ٪",
+      "scrap": "الهدر ٪"
+    },
+    "mttr": {
+      "mttrHours": "متوسط زمن الإصلاح (ساعات)",
+      "mtbfHours": "متوسط الزمن بين الأعطال (ساعات)",
+      "mttrAxis": "م.ز.إ (س)",
+      "mtbfAxis": "م.ز.ب.أ (س)",
+      "noData": "لا توجد بيانات موثوقية متاحة بعد"
+    },
+    "pareto": {
+      "downtimeMin": "وقت التوقف (دقائق)",
+      "cumulativePct": "النسبة التراكمية ٪",
+      "min": "دقائق"
+    },
+    "spc": {
+      "title": "التحكم الإحصائي في العملية (مخطط X-Bar)",
+      "value": "القيمة",
+      "mean": "المتوسط",
+      "controlLimits": "حدود التحكم",
+      "specLimits": "حدود المواصفات",
+      "noData": "لا توجد قياسات تحكم إحصائي مسجلة لهذا البارامتر"
+    },
+    "gantt": {
+      "category": "الفئة",
+      "resource": "المورد",
+      "noItems": "لا توجد عناصر مجدولة في هذا النطاق. عدّل النطاق الزمني أو عوامل التصفية."
+    }
+  },
+  "gantt": {
+    "view": "عرض المخطط",
+    "orderTree": "شجرة الأوامر (أمر إنتاج ← أمر عمل ← أمر تشغيل)",
+    "machines": "الماكينات",
+    "expandAll": "توسيع الكل",
+    "collapseAll": "طي الكل",
+    "dependencyLinks": "روابط التبعية",
+    "nonWorkingShading": "تظليل أيام العطل",
+    "links": "الروابط",
+    "insights": "رؤى",
+    "ctp": "القدرة على الوعد",
+    "filter": "تصفية",
+    "hidden": "({{count}} مخفي)",
+    "today": "اليوم",
+    "zoomOut": "تصغير",
+    "zoomIn": "تكبير",
+    "orderStep": "الأمر / الخطوة",
+    "machine": "الماكينة",
+    "scheduledTasks": "المهام المجدولة",
+    "hiddenCount": "مخفي",
+    "rows": "الصفوف",
+    "resources": "الموارد",
+    "orders": "الأوامر",
+    "zoom30min": "30 دقيقة",
+    "zoomHour": "ساعة واحدة",
+    "zoomDay": "يوم",
+    "zoomWeek": "أسبوع",
+    "zoomMonth": "شهر"
+  },
+  "timeRange": {
+    "today": "اليوم",
+    "shift": "الوردية",
+    "week": "الأسبوع",
+    "month": "الشهر",
+    "custom": "مخصص",
+    "from": "من",
+    "to": "إلى",
+    "applyRange": "تطبيق النطاق"
+  },
+  "widgets": {
+    "runningLines": "الخطوط العاملة",
+    "activeOrders": "الأوامر النشطة",
+    "completedToday": "المكتمل اليوم",
+    "outputEfficiency": "كفاءة الإنتاج",
+    "active": "نشطة",
+    "elapsed": "منقضية",
+    "outputProgress": "تقدم الإنتاج",
+    "ofTarget": "{{value}} من المستهدف",
+    "noTargetSet": "لم يُحدد مستهدف",
+    "wip": "تحت التشغيل",
+    "downtime": "وقت التوقف",
+    "defects": "العيوب",
+    "openAnalytics": "فتح التحليلات المتعمقة لهذه الماكينة",
+    "order": "الأمر"
+  },
+  "scope": {
+    "title": "النطاق",
+    "showScope": "إظهار النطاق",
+    "collapse": "طي",
+    "wholeFactory": "المصنع بالكامل",
+    "noHierarchy": "لا يوجد هيكل",
+    "scopedTo": "محصور في",
+    "appliesOnAnalytics": "يُطبَّق الاختيار على صفحات التحليلات واللوحات."
+  },
+  "atOee": {
+    "schedule": "OEE",
+    "tb": "OEE-TB",
+    "hint": "تبديل بين OEE المبني على الجدول والزمني (OEE-TB)"
+  },
+  "filters": {
+    "title": "عوامل التصفية",
+    "period": "الفترة",
+    "orders": "الأوامر",
+    "view": "العرض"
+  },
+  "trend": {
+    "area": "مساحي",
+    "line": "خطي",
+    "bar": "أعمدة"
+  },
+  "rowActions": {
+    "label": "إجراءات الصف"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "new": "({{count}} جديد)",
+    "markAll": "تعليم الكل",
+    "allCaughtUp": "لقد اطّلعت على كل شيء",
+    "viewAll": "عرض كل الإشعارات",
+    "settings": "إعدادات الإشعارات"
+  },
+  "topbar": {
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "النظام",
+    "user": "مستخدم"
+  },
+  "actions": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "close": "إغلاق",
+    "search": "بحث",
+    "clear": "مسح",
+    "refresh": "تحديث",
+    "export": "تصدير",
+    "filter": "تصفية",
+    "back": "رجوع",
+    "next": "التالي",
+    "confirm": "تأكيد",
+    "view": "عرض",
+    "viewDetails": "عرض التفاصيل",
+    "saving": "جارٍ الحفظ…",
+    "deleting": "جارٍ الحذف…"
+  },
+  "pagination": {
+    "showing": "عرض",
+    "of": "من",
+    "results": "نتيجة",
+    "first": "الصفحة الأولى",
+    "previous": "الصفحة السابقة",
+    "next": "الصفحة التالية",
+    "last": "الصفحة الأخيرة"
+  },
+  "status": {
+    "active": "نشط",
+    "paused": "متوقف",
+    "archived": "مؤرشف",
+    "open": "مفتوح",
+    "closed": "مغلق",
+    "pending": "قيد الانتظار",
+    "completed": "مكتمل",
+    "live": "مباشر"
+  },
+  "priority": {
+    "LOW": "منخفضة",
+    "MEDIUM": "متوسطة",
+    "HIGH": "عالية",
+    "CRITICAL": "حرجة"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "noData": "لا توجد بيانات",
+    "all": "الكل",
+    "none": "لا شيء",
+    "yes": "نعم",
+    "no": "لا",
+    "language": "اللغة",
+    "selected": "{{count}} محدد",
+    "clearSelection": "إلغاء التحديد",
+    "confirmDelete": "لا يمكن التراجع عن هذا الإجراء. هل أنت متأكد؟"
+  },
+  "units": {
+    "piece": "قطعة",
+    "inner": "عبوة",
+    "carton": "كرتونة",
+    "pallet": "بالتة"
+  },
+  "permission": {
+    "deniedTitle": "لا تملك صلاحية الوصول إلى هذه الصفحة",
+    "deniedBody": "هذه شاشة إدارة. اطلب من المسؤول منحك الصلاحية أدناه من صفحة إدارة الصلاحيات.",
+    "required": "الصلاحية المطلوبة:"
+  }
+}

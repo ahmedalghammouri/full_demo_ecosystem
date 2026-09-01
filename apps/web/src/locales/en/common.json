@@ -1,0 +1,264 @@
+{
+  "dataMode": {
+    "live": "Live",
+    "period": "Period",
+    "liveHint": "Real-time value — not affected by the time / PO / WO filters",
+    "periodHint": "Saved data over the selected period — responds to the time / PO / WO filters"
+  },
+  "attach": {
+    "add": "Add file",
+    "uploaded": "File uploaded",
+    "uploadFailed": "Upload failed",
+    "deleted": "File removed",
+    "delete": "Remove",
+    "deleteFailed": "Could not remove file",
+    "openFailed": "Could not open file",
+    "none": "No attachments yet — add photos or files.",
+    "noneReadonly": "No files attached.",
+    "instructions": "Instructions & Guides",
+    "evidence": "Photos & Files"
+  },
+  "picker": {
+    "searchMachines": "Search machines...",
+    "noMachines": "No machines found",
+    "searchWorkCenters": "Search work centers...",
+    "noResults": "No results",
+    "manage": "Manage {{label}}",
+    "noneDefined": "No {{label}} defined yet.",
+    "select": "Select…",
+    "search": "Search…",
+    "noMatches": "No matches"
+  },
+  "charts": {
+    "currentShift": "Current Shift",
+    "activeAlarms": "Active Alarms",
+    "noActiveAlarms": "No active alarms",
+    "allNormal": "All systems operating normally",
+    "oee": "OEE",
+    "live": "LIVE",
+    "machineStatusGrid": "Machine Status Grid",
+    "realtimeOverview": "Real-time equipment overview",
+    "qualityTrend": "Quality Trend",
+    "fpyDefects": "First Pass Yield and defect rates",
+    "productionOutput": "Production Output",
+    "actualVsTarget": "Actual vs target with efficiency",
+    "oeeAnalysis": "OEE Analysis",
+    "oeeFull": "Overall Equipment Effectiveness",
+    "availability": "Availability",
+    "performance": "Performance",
+    "quality": "Quality",
+    "mttrMtbf": "Mean Time to Repair vs Mean Time Between Failures",
+    "downtimePareto": "Downtime Pareto",
+    "downtimeParetoSub": "Top downtime causes (Pareto analysis)",
+    "mttrMtbfTitle": "MTTR & MTBF Trends",
+    "gRows": "Rows",
+    "gTimeScale": "Time scale",
+    "gActions": "Actions",
+    "gOrders": "Orders",
+    "gResources": "Resources",
+    "gSupply": "Supply",
+    "gDemand": "Demand",
+    "worldClass": "World Class",
+    "production": {
+      "actualOutput": "Actual Output",
+      "target": "Target",
+      "efficiencyPct": "Efficiency %",
+      "units": "Units"
+    },
+    "qualityTrendSeries": {
+      "fpy": "FPY %",
+      "rework": "Rework %",
+      "scrap": "Scrap %"
+    },
+    "mttr": {
+      "mttrHours": "MTTR (hours)",
+      "mtbfHours": "MTBF (hours)",
+      "mttrAxis": "MTTR (h)",
+      "mtbfAxis": "MTBF (h)",
+      "noData": "No reliability data available yet"
+    },
+    "pareto": {
+      "downtimeMin": "Downtime (min)",
+      "cumulativePct": "Cumulative %",
+      "min": "Min"
+    },
+    "spc": {
+      "title": "Statistical Process Control (X-Bar Chart)",
+      "value": "Value",
+      "mean": "Mean",
+      "controlLimits": "Control Limits",
+      "specLimits": "Spec Limits",
+      "noData": "No SPC measurements recorded for this parameter"
+    },
+    "gantt": {
+      "category": "Category",
+      "resource": "Resource",
+      "noItems": "No scheduled items in this range. Adjust the date range or filters."
+    }
+  },
+  "gantt": {
+    "view": "Gantt View",
+    "orderTree": "Order tree (PO → WO → JO)",
+    "machines": "Machines",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "dependencyLinks": "Dependency links",
+    "nonWorkingShading": "Non-working shading",
+    "links": "Links",
+    "insights": "Insights",
+    "ctp": "CTP",
+    "filter": "Filter",
+    "hidden": "({{count}} hidden)",
+    "today": "Today",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "orderStep": "Order / Step",
+    "machine": "Machine",
+    "scheduledTasks": "Scheduled Tasks",
+    "hiddenCount": "Hidden",
+    "rows": "Rows",
+    "resources": "Resources",
+    "orders": "Orders",
+    "zoom30min": "30 min",
+    "zoomHour": "1 hour",
+    "zoomDay": "Day",
+    "zoomWeek": "Week",
+    "zoomMonth": "Month"
+  },
+  "timeRange": {
+    "today": "Today",
+    "shift": "Shift",
+    "week": "Week",
+    "month": "Month",
+    "custom": "Custom",
+    "from": "From",
+    "to": "To",
+    "applyRange": "Apply range"
+  },
+  "widgets": {
+    "runningLines": "Running Lines",
+    "activeOrders": "Active Orders",
+    "completedToday": "Completed Today",
+    "outputEfficiency": "Output Efficiency",
+    "active": "Active",
+    "elapsed": "elapsed",
+    "outputProgress": "Output Progress",
+    "ofTarget": "{{value}} of target",
+    "noTargetSet": "no target set",
+    "wip": "WIP",
+    "downtime": "Downtime",
+    "defects": "Defects",
+    "openAnalytics": "Open deep analytics for this machine",
+    "order": "Order"
+  },
+  "scope": {
+    "title": "Scope",
+    "showScope": "Show scope",
+    "collapse": "Collapse",
+    "wholeFactory": "Whole factory",
+    "noHierarchy": "No hierarchy",
+    "scopedTo": "Scoped to",
+    "appliesOnAnalytics": "Selection applies on analytics & dashboard pages."
+  },
+  "atOee": {
+    "schedule": "OEE",
+    "tb": "OEE-TB",
+    "hint": "Toggle schedule-based OEE vs time-based (OEE-TB)"
+  },
+  "filters": {
+    "title": "Filters",
+    "period": "Period",
+    "orders": "Orders",
+    "view": "View"
+  },
+  "trend": {
+    "area": "Area",
+    "line": "Line",
+    "bar": "Bar"
+  },
+  "rowActions": {
+    "label": "Row actions"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "new": "({{count}} new)",
+    "markAll": "Mark all",
+    "allCaughtUp": "You're all caught up",
+    "viewAll": "View all notifications",
+    "settings": "Notification settings"
+  },
+  "topbar": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "user": "User"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "search": "Search",
+    "clear": "Clear",
+    "refresh": "Refresh",
+    "export": "Export",
+    "filter": "Filter",
+    "back": "Back",
+    "next": "Next",
+    "confirm": "Confirm",
+    "view": "View",
+    "viewDetails": "View Details",
+    "saving": "Saving…",
+    "deleting": "Deleting…"
+  },
+  "pagination": {
+    "showing": "Showing",
+    "of": "of",
+    "results": "results",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page"
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused",
+    "archived": "Archived",
+    "open": "Open",
+    "closed": "Closed",
+    "pending": "Pending",
+    "completed": "Completed",
+    "live": "Live"
+  },
+  "priority": {
+    "LOW": "Low",
+    "MEDIUM": "Medium",
+    "HIGH": "High",
+    "CRITICAL": "Critical"
+  },
+  "common": {
+    "loading": "Loading…",
+    "noData": "No data",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "language": "Language",
+    "selected": "{{count}} selected",
+    "clearSelection": "Clear selection",
+    "confirmDelete": "This action cannot be undone. Are you sure?"
+  },
+  "units": {
+    "piece": "pcs",
+    "inner": "inner",
+    "carton": "carton",
+    "pallet": "pallet"
+  },
+  "permission": {
+    "deniedTitle": "You do not have access to this page",
+    "deniedBody": "This is an administration surface. Ask an administrator to grant you the permission below from Access Control.",
+    "required": "Permission required:"
+  }
+}

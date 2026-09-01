@@ -212,20 +212,27 @@ losing one.
 
 **Built and verified**
 
-- Platform base, fully rebranded, with every trace of pilot-customer data removed
+- Platform base, renamed to **i360** throughout, with every trace of pilot-customer data removed
 - Three-factory plant model — validated, 0 errors, 0 warnings
+- **Factory classification driving the product**: each site declares a type, the type grants a
+  capability set, and the capability set decides the navigation. Verified end to end — the three
+  factories see 98, 97 and 101 of 110 routes, and the sets genuinely differ
 - Deterministic signal engine — 134 physical-plausibility checks passing
-- Master-data seeder — idempotent, type-checked against the live schema
-- Clean baseline schema: 112 tables from one migration
+- Master-data seeder — idempotent, type-checked, run by the API container on boot
+- Clean baseline schema: 112 tables, migrations applied by `migrate deploy` (not `db push`)
 - TimescaleDB verified active
+- Traefik deployment overlay for `i360.industry360.cloud`, every host port parameterised
+  behind `BIND_ADDR` so nothing collides with the sibling stacks
 
 **In progress**
 
-- `seed-history.ts` — transactional history: orders, counts, downtime, quality, energy
+- `seed-history.ts` — transactional history: orders, counts, downtime, quality, energy.
+  Until it lands, KPI tiles correctly read `—` rather than a fabricated zero
+- The capability-gated screens themselves: `/twin`, `/vision`, `/materials`, `/power-quality`,
+  `/harmonics`, `/power-factor`, `/sld`, `/cost`, `/sustainability`, `/predictive`, `/environment`
 - `apps/virtualplant` — Modbus TCP server the real edge gateway polls unmodified
 - Ecosystem Home — the 64 modules by layer, locked ones shown as locked
-- Ported modules: serialised genealogy and vision (AFCC), power quality and ESG (RMTC)
 
 ---
 
-*© 2026 Industry360° — Industrial Intelligence Ecosystem*
+*© 2026 Industry360° — i360 Industrial Intelligence Ecosystem*

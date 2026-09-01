@@ -1,0 +1,385 @@
+/**
+ * AFCC — Afaq Composite Cylinders, Riyadh.
+ *
+ * The discrete, serialised site. Every cylinder carries its own serial and its
+ * own genealogy: nine routing stages, each stamping the machine, the operator,
+ * the material batches consumed and the full process-parameter set at that
+ * stage. This is the factory that demonstrates forward and backward
+ * traceability, per-unit quality, vision inspection and the digital twin.
+ *
+ * The line's constraint is the filament winder. Normalised to cylinders/hour:
+ *
+ *   IM-01…04  4 × 200 s          72 cyl/h   (four machines in parallel)
+ *   FW-01     55 s               65 cyl/h   ← the constraint
+ *   CU-01     24 per 20 min      72 cyl/h
+ *   HT-01     45 s               80 cyl/h
+ *   PK-01     42.35 s            85 cyl/h
+ *
+ * Stations sit 1.3-1.5x above the constraint, which is how a line is actually
+ * sized: enough headroom to recover after a stop, not so much that a station
+ * spends two thirds of its run time waiting.
+ *
+ * The stated expansion target is 120 cyl/h, which the capacity screen shows is
+ * unreachable without a second winder — the headroom analysis falls out of the
+ * model rather than being asserted.
+ *
+ * Goods-in and vision inspection are modelled as cells of their own so that
+ * every routing stage maps to exactly one machine. Without that, two stages
+ * land on one machine and double its counted output.
+ */
+
+import type { FactoryDef } from './types';
+
+export const AFCC: FactoryDef = {
+  code: 'AFCC',
+  name: 'Afaq Composite Cylinders',
+  nameAr: 'آفاق للأسطوانات المركّبة',
+  city: 'Riyadh',
+  cityAr: 'الرياض',
+  district: '2nd Industrial City',
+  districtAr: 'المدينة الصناعية الثانية',
+  lat: 24.5834,
+  lng: 46.8712,
+  color: '#D9BB75',
+  glowColor: 'rgba(217,187,117,0.30)',
+  timezone: 'Asia/Riyadh',
+  displayUnit: 'PIECE',
+  paradigm: 'DISCRETE_SERIAL',
+  type: 'DISCRETE_ASSEMBLY',
+  // One cylinder is one piece at every stage; the pallet is a dispatch unit.
+  unitFactors: { PIECE: 1, PALLET: 36 },
+  tagline: 'Serialised manufacturing — per-unit genealogy, vision and digital twin',
+  taglineAr: 'تصنيع مُسلسَل — تتبّع لكل وحدة وفحص بصري وتوأم رقمي',
+  showcases: ['L1_CONNECTIVITY', 'L2_MES', 'L3_SIMULATION', 'L4_AI'],
+
+  areas: [
+    { code: 'A-RCV', name: 'Goods Receiving', nameAr: 'استلام المواد', type: 'WAREHOUSE' },
+    { code: 'A-LIN', name: 'Liner Moulding', nameAr: 'تشكيل البطانة', type: 'MAKING' },
+    { code: 'A-WND', name: 'Winding & Curing', nameAr: 'اللف والمعالجة', type: 'MAKING' },
+    { code: 'A-TST', name: 'Testing & Inspection', nameAr: 'الاختبار والفحص', type: 'LABORATORY' },
+    { code: 'A-PCK', name: 'Packing & Dispatch', nameAr: 'التعبئة والشحن', type: 'PACKING' },
+    { code: 'A-UTL', name: 'Utilities', nameAr: 'المرافق', type: 'UTILITY' },
+  ],
+
+  lines: [
+    { code: 'CL1', name: 'Cylinder Manufacturing Line', nameAr: 'خط تصنيع الأسطوانات',
+      type: 'MAKING', areaCode: 'A-WND', sortOrder: 1,
+      oeeMethod: 'BOTTLENECK', bottleneckMachine: 'FW-01', outfeedMachines: ['PK-01'] },
+  ],
+
+  machines: [
+    { code: 'WH-01', name: 'Goods-In Station', nameAr: 'محطة الاستلام',
+      type: 'MACHINE', areaCode: 'A-RCV', lineCode: 'CL1', sortOrder: 1,
+      criticality: 'MEDIUM', designCapacity: 90, idealCycleSeconds: 40.0,
+      countUnit: 'PIECE', downtimeThreshold: 120, installDate: '2022-05-10',
+      metadata: { note: 'Modelled as a cell so every routing stage maps to one machine' } },
+
+    { code: 'IM-01', name: 'Injection Moulding 1', nameAr: 'حقن البلاستيك ١',
+      type: 'MACHINE', areaCode: 'A-LIN', lineCode: 'CL1', sortOrder: 2,
+      manufacturer: 'Engel', model: 'Duo-1700', criticality: 'HIGH',
+      designCapacity: 18, idealCycleSeconds: 200.0, countUnit: 'PIECE',
+      downtimeThreshold: 90, installDate: '2022-05-10',
+      metadata: { clampTonnes: 1700, parallelGroup: 'LINER' } },
+    { code: 'IM-02', name: 'Injection Moulding 2', nameAr: 'حقن البلاستيك ٢',
+      type: 'MACHINE', areaCode: 'A-LIN', lineCode: 'CL1', sortOrder: 3,
+      manufacturer: 'Engel', model: 'Duo-1700', criticality: 'HIGH',
+      designCapacity: 18, idealCycleSeconds: 200.0, countUnit: 'PIECE',
+      downtimeThreshold: 90, installDate: '2022-05-10',
+      metadata: { clampTonnes: 1700, parallelGroup: 'LINER' } },
+    { code: 'IM-03', name: 'Injection Moulding 3', nameAr: 'حقن البلاستيك ٣',
+      type: 'MACHINE', areaCode: 'A-LIN', lineCode: 'CL1', sortOrder: 4,
+      manufacturer: 'Engel', model: 'Duo-1700', criticality: 'HIGH',
+      designCapacity: 18, idealCycleSeconds: 200.0, countUnit: 'PIECE',
+      downtimeThreshold: 90, installDate: '2023-01-22',
+      metadata: { clampTonnes: 1700, parallelGroup: 'LINER' } },
+    { code: 'IM-04', name: 'Injection Moulding 4', nameAr: 'حقن البلاستيك ٤',
+      type: 'MACHINE', areaCode: 'A-LIN', lineCode: 'CL1', sortOrder: 5,
+      manufacturer: 'Engel', model: 'Duo-1700', criticality: 'HIGH',
+      designCapacity: 18, idealCycleSeconds: 200.0, countUnit: 'PIECE',
+      downtimeThreshold: 90, installDate: '2023-01-22',
+      metadata: { clampTonnes: 1700, parallelGroup: 'LINER' } },
+
+    { code: 'FW-01', name: 'Filament Winder', nameAr: 'ماكينة اللف الليفي',
+      type: 'MACHINE', areaCode: 'A-WND', lineCode: 'CL1', sortOrder: 6,
+      manufacturer: 'Roth Composite', model: 'RCM-4X', criticality: 'CRITICAL',
+      designCapacity: 65, idealCycleSeconds: 55.0, countUnit: 'PIECE',
+      downtimeThreshold: 60, installDate: '2022-05-10',
+      metadata: { axes: 4, note: 'Line constraint — expansion to 120 cyl/h needs a second winder' } },
+    { code: 'CU-01', name: 'Curing Oven', nameAr: 'فرن المعالجة',
+      type: 'REACTOR', areaCode: 'A-WND', lineCode: 'CL1', sortOrder: 7,
+      manufacturer: 'Heraeus', model: 'CT-2400', criticality: 'CRITICAL',
+      designCapacity: 72, idealCycleSeconds: 50.0, countUnit: 'PIECE',
+      downtimeThreshold: 180, installDate: '2022-05-10',
+      metadata: { batchSize: 24, batchMinutes: 20 } },
+
+    { code: 'VT-01', name: 'Valve Torquing Station', nameAr: 'محطة ربط الصمام',
+      type: 'MACHINE', areaCode: 'A-TST', lineCode: 'CL1', sortOrder: 8,
+      manufacturer: 'Atlas Copco', model: 'PowerFocus-6000', criticality: 'HIGH',
+      designCapacity: 90, idealCycleSeconds: 40.0, countUnit: 'PIECE',
+      downtimeThreshold: 60, installDate: '2022-06-14' },
+    { code: 'HT-01', name: 'Hydrostatic Test Bench', nameAr: 'منصّة الاختبار الهيدروستاتيكي',
+      type: 'MACHINE', areaCode: 'A-TST', lineCode: 'CL1', sortOrder: 9,
+      manufacturer: 'Galiso', model: 'HT-450', criticality: 'CRITICAL',
+      designCapacity: 80, idealCycleSeconds: 45.0, countUnit: 'PIECE',
+      downtimeThreshold: 60, installDate: '2022-06-14',
+      metadata: { testPressureBar: 450, holdSeconds: 30 } },
+    { code: 'LT-01', name: 'Leak Test Station', nameAr: 'محطة اختبار التسرّب',
+      type: 'MACHINE', areaCode: 'A-TST', lineCode: 'CL1', sortOrder: 10,
+      manufacturer: 'Inficon', model: 'LDS-3000', criticality: 'HIGH',
+      designCapacity: 85, idealCycleSeconds: 42.35, countUnit: 'PIECE',
+      downtimeThreshold: 60, installDate: '2022-06-14' },
+    { code: 'VIS-01', name: 'Vision Inspection Station', nameAr: 'محطة الفحص البصري',
+      type: 'SENSOR', areaCode: 'A-TST', lineCode: 'CL1', sortOrder: 11,
+      manufacturer: 'Cognex', model: 'In-Sight 9912', criticality: 'HIGH',
+      designCapacity: 95, idealCycleSeconds: 37.89, countUnit: 'PIECE',
+      downtimeThreshold: 60, installDate: '2023-03-08',
+      metadata: { cameras: 4, resolutionMp: 12 } },
+
+    { code: 'PK-01', name: 'Packing & Labelling', nameAr: 'التعبئة والترميز',
+      type: 'MACHINE', areaCode: 'A-PCK', lineCode: 'CL1', sortOrder: 12,
+      criticality: 'MEDIUM', designCapacity: 85, idealCycleSeconds: 42.35,
+      countUnit: 'PIECE', downtimeThreshold: 90, installDate: '2022-06-14' },
+
+    { code: 'CMP-A', name: 'Air Compressor', nameAr: 'ضاغط الهواء',
+      type: 'COMPRESSOR', areaCode: 'A-UTL', sortOrder: 1,
+      manufacturer: 'Atlas Copco', model: 'GA-55', criticality: 'CRITICAL',
+      downtimeThreshold: 120, installDate: '2022-04-02', metadata: { ratedKw: 55 } },
+    { code: 'CHL-A', name: 'Process Chiller', nameAr: 'مبرّد العمليات',
+      type: 'CHILLER', areaCode: 'A-UTL', sortOrder: 2,
+      manufacturer: 'Trane', model: 'RTAC-350', criticality: 'HIGH',
+      downtimeThreshold: 120, installDate: '2022-04-02', metadata: { ratedKw: 180 } },
+  ],
+
+  shifts: [
+    { code: 'A', name: 'Shift A — Morning', nameAr: 'وردية أ — صباحية',
+      startTime: '07:00', endTime: '15:00', crossesMidnight: false,
+      shiftDurationHours: 8, plannedProductionHours: 7.25,
+      breakMinutes: 30, cleaningMinutes: 15, days: [0, 1, 2, 3, 4],
+      targetQtyPerShift: 420, targetUnit: 'PIECE', efficiencyFactor: 1.0 },
+    { code: 'B', name: 'Shift B — Evening', nameAr: 'وردية ب — مسائية',
+      startTime: '15:00', endTime: '23:00', crossesMidnight: false,
+      shiftDurationHours: 8, plannedProductionHours: 7.25,
+      breakMinutes: 30, cleaningMinutes: 15, days: [0, 1, 2, 3, 4],
+      targetQtyPerShift: 405, targetUnit: 'PIECE', efficiencyFactor: 0.96 },
+    { code: 'C', name: 'Shift C — Night', nameAr: 'وردية ج — ليلية',
+      startTime: '23:00', endTime: '07:00', crossesMidnight: true,
+      shiftDurationHours: 8, plannedProductionHours: 7.0,
+      breakMinutes: 30, cleaningMinutes: 30, days: [0, 1, 2, 3, 4],
+      targetQtyPerShift: 370, targetUnit: 'PIECE', efficiencyFactor: 0.90 },
+  ],
+
+  downtimeCauses: [
+    { code: 'L1-MECH', name: 'Mechanical', nameAr: 'ميكانيكي', category: 'MECHANICAL', isPlanned: false, level: 1 },
+    { code: 'L2-WND', name: 'Winding faults', nameAr: 'أعطال اللف', category: 'MECHANICAL', isPlanned: false, level: 2, parent: 'L1-MECH' },
+    { code: 'MECH-TOW-BREAK', name: 'Fiber tow break', nameAr: 'قطع خصلة الألياف', category: 'MECHANICAL', isPlanned: false, level: 3, parent: 'L2-WND', weight: 24, durationRange: [6, 22] },
+    { code: 'MECH-CREEL', name: 'Creel change', nameAr: 'تغيير بكرات الألياف', category: 'MECHANICAL', isPlanned: false, level: 3, parent: 'L2-WND', weight: 12, durationRange: [15, 35] },
+    { code: 'MECH-MANDREL', name: 'Mandrel alignment', nameAr: 'محاذاة القالب', category: 'MECHANICAL', isPlanned: false, level: 3, parent: 'L2-WND', weight: 6, durationRange: [20, 60] },
+    { code: 'L2-MLD', name: 'Moulding faults', nameAr: 'أعطال الحقن', category: 'MECHANICAL', isPlanned: false, level: 2, parent: 'L1-MECH' },
+    { code: 'MECH-MOULD-STICK', name: 'Part sticking in mould', nameAr: 'التصاق القطعة بالقالب', category: 'MECHANICAL', isPlanned: false, level: 3, parent: 'L2-MLD', weight: 9, durationRange: [8, 30] },
+    { code: 'MECH-HOTRUN', name: 'Hot runner blockage', nameAr: 'انسداد القناة الساخنة', category: 'MECHANICAL', isPlanned: false, level: 3, parent: 'L2-MLD', weight: 4, durationRange: [40, 150] },
+
+    { code: 'L1-PROC', name: 'Process', nameAr: 'العملية', category: 'PROCESS', isPlanned: false, level: 1 },
+    { code: 'L2-RESIN', name: 'Resin system', nameAr: 'نظام الراتنج', category: 'PROCESS', isPlanned: false, level: 2, parent: 'L1-PROC' },
+    { code: 'PROC-RESIN-VISC', name: 'Resin viscosity out of range', nameAr: 'لزوجة الراتنج خارج النطاق', category: 'PROCESS', isPlanned: false, level: 3, parent: 'L2-RESIN', weight: 8, durationRange: [12, 45] },
+    { code: 'PROC-BATH-TEMP', name: 'Resin bath temperature deviation', nameAr: 'انحراف حرارة حوض الراتنج', category: 'PROCESS', isPlanned: false, level: 3, parent: 'L2-RESIN', weight: 6, durationRange: [10, 30] },
+    { code: 'L2-CURE', name: 'Curing', nameAr: 'المعالجة', category: 'PROCESS', isPlanned: false, level: 2, parent: 'L1-PROC' },
+    { code: 'PROC-OVEN-TEMP', name: 'Oven temperature excursion', nameAr: 'انحراف حرارة الفرن', category: 'PROCESS', isPlanned: false, level: 3, parent: 'L2-CURE', weight: 5, durationRange: [20, 75] },
+
+    { code: 'L1-QUA', name: 'Quality', nameAr: 'الجودة', category: 'QUALITY', isPlanned: false, level: 1 },
+    { code: 'L2-QHOLD', name: 'Test holds', nameAr: 'إيقاف للاختبار', category: 'QUALITY', isPlanned: false, level: 2, parent: 'L1-QUA' },
+    { code: 'QUA-HYDRO-FAIL', name: 'Hydrostatic failure investigation', nameAr: 'تحقيق في فشل الاختبار الهيدروستاتيكي', category: 'QUALITY', isPlanned: false, level: 3, parent: 'L2-QHOLD', weight: 7, durationRange: [25, 90] },
+    { code: 'QUA-LEAK-FAIL', name: 'Leak test cluster', nameAr: 'تجمّع فشل اختبار التسرّب', category: 'QUALITY', isPlanned: false, level: 3, parent: 'L2-QHOLD', weight: 5, durationRange: [15, 50] },
+
+    { code: 'L1-MAT', name: 'Material', nameAr: 'مواد', category: 'MATERIAL', isPlanned: false, level: 1 },
+    { code: 'L2-MSUP', name: 'Supply', nameAr: 'التوريد', category: 'MATERIAL', isPlanned: false, level: 2, parent: 'L1-MAT' },
+    { code: 'MAT-NO-FIBER', name: 'Carbon fiber starved', nameAr: 'نفاد ألياف الكربون', category: 'MATERIAL', isPlanned: false, level: 3, parent: 'L2-MSUP', weight: 6, durationRange: [20, 70] },
+    { code: 'MAT-NO-VALVE', name: 'Valve supply starved', nameAr: 'نفاد الصمامات', category: 'MATERIAL', isPlanned: false, level: 3, parent: 'L2-MSUP', weight: 4, durationRange: [15, 45] },
+
+    { code: 'L1-ELEC', name: 'Electrical', nameAr: 'كهربائي', category: 'ELECTRICAL', isPlanned: false, level: 1 },
+    { code: 'L2-EDRV', name: 'Drives & controls', nameAr: 'المشغّلات والتحكم', category: 'ELECTRICAL', isPlanned: false, level: 2, parent: 'L1-ELEC' },
+    { code: 'ELEC-SERVO', name: 'Servo drive fault', nameAr: 'عطل مشغّل السيرفو', category: 'ELECTRICAL', isPlanned: false, level: 3, parent: 'L2-EDRV', weight: 5, durationRange: [15, 60] },
+    { code: 'ELEC-ESTOP', name: 'Emergency stop activated', nameAr: 'تفعيل إيقاف الطوارئ', category: 'ELECTRICAL', isPlanned: false, level: 3, parent: 'L2-EDRV', weight: 3, durationRange: [1, 10] },
+
+    { code: 'L1-CHG', name: 'Changeover', nameAr: 'تغيير الإنتاج', category: 'CHANGEOVER', isPlanned: true, level: 1 },
+    { code: 'L2-CTYPE', name: 'Cylinder type change', nameAr: 'تغيير نوع الأسطوانة', category: 'CHANGEOVER', isPlanned: true, level: 2, parent: 'L1-CHG' },
+    { code: 'CHG-TYPE', name: 'Type changeover', nameAr: 'تغيير النوع', category: 'CHANGEOVER', isPlanned: true, level: 3, parent: 'L2-CTYPE', weight: 5, durationRange: [45, 120] },
+
+    { code: 'L1-PLN', name: 'Planned', nameAr: 'مخطط', category: 'PLANNED_MAINTENANCE', isPlanned: true, level: 1 },
+    { code: 'L2-PPM', name: 'Preventive maintenance', nameAr: 'صيانة وقائية', category: 'PLANNED_MAINTENANCE', isPlanned: true, level: 2, parent: 'L1-PLN' },
+    { code: 'PLN-PM', name: 'Scheduled PM window', nameAr: 'نافذة صيانة مجدولة', category: 'PLANNED_MAINTENANCE', isPlanned: true, level: 3, parent: 'L2-PPM', weight: 4, durationRange: [60, 200] },
+    { code: 'L2-PBRK', name: 'Breaks', nameAr: 'استراحات', category: 'PLANNED_BREAK', isPlanned: true, level: 2, parent: 'L1-PLN' },
+    { code: 'PLN-BREAK', name: 'Operator break', nameAr: 'استراحة المشغّل', category: 'PLANNED_BREAK', isPlanned: true, level: 3, parent: 'L2-PBRK', weight: 8, durationRange: [15, 30] },
+  ],
+
+  products: [
+    { code: 'AFC-12L', name: 'Composite LPG Cylinder 12.5 kg', nameAr: 'أسطوانة غاز مركّبة ١٢٫٥ كجم',
+      category: 'Composite Cylinder', brand: 'Afaq Type-IV', baseUnit: 'PIECE',
+      packagingLadder: [{ unit: 'PIECE', perParent: 1 }, { unit: 'PALLET', perParent: 36 }],
+      isActive: true },
+    { code: 'AFC-06L', name: 'Composite LPG Cylinder 6 kg', nameAr: 'أسطوانة غاز مركّبة ٦ كجم',
+      category: 'Composite Cylinder', brand: 'Afaq Type-IV', baseUnit: 'PIECE',
+      packagingLadder: [{ unit: 'PIECE', perParent: 1 }, { unit: 'PALLET', perParent: 60 }],
+      isActive: true },
+    { code: 'AFC-20L', name: 'Composite LPG Cylinder 20 kg', nameAr: 'أسطوانة غاز مركّبة ٢٠ كجم',
+      category: 'Composite Cylinder', brand: 'Afaq Type-IV', baseUnit: 'PIECE',
+      packagingLadder: [{ unit: 'PIECE', perParent: 1 }, { unit: 'PALLET', perParent: 24 }],
+      isActive: true },
+  ],
+
+  materials: [
+    { code: 'RM-HDPE', name: 'HDPE Liner Resin', nameAr: 'راتنج البطانة', type: 'RAW', unit: 'KG', criticalStock: 6000 },
+    { code: 'RM-CF', name: 'Carbon Fiber Tow 24K', nameAr: 'ألياف كربون ٢٤ألف', type: 'RAW', unit: 'KG', criticalStock: 3500 },
+    { code: 'RM-GF', name: 'Glass Fiber Roving', nameAr: 'ألياف زجاجية', type: 'RAW', unit: 'KG', criticalStock: 2800 },
+    { code: 'RM-EPOXY', name: 'Epoxy Resin', nameAr: 'راتنج إيبوكسي', type: 'RAW', unit: 'KG', shelfLifeDays: 270, criticalStock: 2200 },
+    { code: 'RM-HARD', name: 'Hardener', nameAr: 'المصلّب', type: 'RAW', unit: 'KG', shelfLifeDays: 270, criticalStock: 900 },
+    { code: 'CP-BOSS', name: 'Aluminium Boss', nameAr: 'وصلة ألمنيوم', type: 'RAW', unit: 'PCS', criticalStock: 4000 },
+    { code: 'CP-VALVE', name: 'Cylinder Valve', nameAr: 'صمام الأسطوانة', type: 'RAW', unit: 'PCS', criticalStock: 3000 },
+    { code: 'CP-SLEEVE', name: 'Protective Sleeve', nameAr: 'غلاف واقٍ', type: 'PACKAGING', unit: 'PCS', criticalStock: 3500 },
+    { code: 'PK-LBL', name: 'Serial Label', nameAr: 'ملصق التسلسل', type: 'PACKAGING', unit: 'PCS', criticalStock: 20000 },
+    { code: 'PK-PAL', name: 'Steel Pallet', nameAr: 'منصّة حديدية', type: 'PACKAGING', unit: 'PCS', criticalStock: 200 },
+  ],
+
+  routing: [
+    { sequence: 1, code: 'RS-RECV', name: 'Goods Receiving', nameAr: 'استلام المواد',
+      machines: ['WH-01'], idealCycleSeconds: 30.0, consumes: ['RM-HDPE', 'CP-BOSS'] },
+    { sequence: 2, code: 'RS-MOULD', name: 'Liner Injection Moulding', nameAr: 'حقن البطانة',
+      machines: ['IM-01', 'IM-02', 'IM-03', 'IM-04'], idealCycleSeconds: 200.0,
+      consumes: ['RM-HDPE', 'CP-BOSS'], tests: ['QS-LINERWT'] },
+    { sequence: 3, code: 'RS-WIND', name: 'Filament Winding', nameAr: 'اللف الليفي',
+      machines: ['FW-01'], idealCycleSeconds: 55.0,
+      consumes: ['RM-CF', 'RM-GF', 'RM-EPOXY', 'RM-HARD'], tests: ['QS-WINDTENS'] },
+    { sequence: 4, code: 'RS-CURE', name: 'Curing', nameAr: 'المعالجة الحرارية',
+      machines: ['CU-01'], idealCycleSeconds: 50.0, tests: ['QS-CURETEMP'] },
+    { sequence: 5, code: 'RS-VALVE', name: 'Valve Fitting & Torquing', nameAr: 'تركيب وربط الصمام',
+      machines: ['VT-01'], idealCycleSeconds: 40.0, consumes: ['CP-VALVE'], tests: ['QS-TORQUE'] },
+    { sequence: 6, code: 'RS-HYDRO', name: 'Hydrostatic Test', nameAr: 'الاختبار الهيدروستاتيكي',
+      machines: ['HT-01'], idealCycleSeconds: 45.0, tests: ['QS-HYDRO'] },
+    { sequence: 7, code: 'RS-LEAK', name: 'Leak Test', nameAr: 'اختبار التسرّب',
+      machines: ['LT-01'], idealCycleSeconds: 35.0, tests: ['QS-LEAK'] },
+    { sequence: 8, code: 'RS-VISION', name: 'Vision Inspection', nameAr: 'الفحص البصري',
+      machines: ['VIS-01'], idealCycleSeconds: 20.0, tests: ['QS-VISION'] },
+    { sequence: 9, code: 'RS-PACK', name: 'Packing & Labelling', nameAr: 'التعبئة والترميز',
+      machines: ['PK-01'], idealCycleSeconds: 30.0, consumes: ['CP-SLEEVE', 'PK-LBL', 'PK-PAL'] },
+  ],
+
+  qualitySpecs: [
+    { code: 'QS-LINERWT', name: 'Liner weight', nameAr: 'وزن البطانة', stepCode: 'RS-MOULD',
+      unit: 'g', lsl: 3820, usl: 3980, target: 3900, sampleRate: 1.0, baselinePassRate: 0.991 },
+    { code: 'QS-WINDTENS', name: 'Winding tension', nameAr: 'شدّ اللف', stepCode: 'RS-WIND',
+      unit: 'N', lsl: 42, usl: 58, target: 50, sampleRate: 1.0, baselinePassRate: 0.978 },
+    { code: 'QS-CURETEMP', name: 'Cure peak temperature', nameAr: 'ذروة حرارة المعالجة', stepCode: 'RS-CURE',
+      unit: '°C', lsl: 138, usl: 152, target: 145, sampleRate: 1.0, baselinePassRate: 0.994 },
+    { code: 'QS-TORQUE', name: 'Valve torque', nameAr: 'عزم ربط الصمام', stepCode: 'RS-VALVE',
+      unit: 'N·m', lsl: 95, usl: 115, target: 105, sampleRate: 1.0, baselinePassRate: 0.996 },
+    { code: 'QS-HYDRO', name: 'Hydrostatic proof pressure', nameAr: 'ضغط الاختبار الهيدروستاتيكي', stepCode: 'RS-HYDRO',
+      unit: 'bar', lsl: 450, target: 465, sampleRate: 1.0, baselinePassRate: 0.985 },
+    { code: 'QS-LEAK', name: 'Leak rate', nameAr: 'معدّل التسرّب', stepCode: 'RS-LEAK',
+      unit: 'mbar·L/s', usl: 0.0001, target: 0.00002, sampleRate: 1.0, baselinePassRate: 0.990 },
+    { code: 'QS-VISION', name: 'Surface inspection', nameAr: 'فحص السطح', stepCode: 'RS-VISION',
+      unit: 'score', lsl: 85, target: 96, sampleRate: 1.0, baselinePassRate: 0.982 },
+  ],
+
+  scrapCodes: [
+    { code: 'SC-DELAM', name: 'Delamination', nameAr: 'انفصال الطبقات', stepCode: 'RS-WIND', weight: 26 },
+    { code: 'SC-DRYSPOT', name: 'Dry spot / resin starvation', nameAr: 'بقعة جافة', stepCode: 'RS-WIND', weight: 18 },
+    { code: 'SC-HYDRO', name: 'Hydrostatic failure', nameAr: 'فشل هيدروستاتيكي', stepCode: 'RS-HYDRO', weight: 15 },
+    { code: 'SC-LEAK', name: 'Leak at boss interface', nameAr: 'تسرّب عند الوصلة', stepCode: 'RS-LEAK', weight: 13 },
+    { code: 'SC-LINER', name: 'Liner short shot', nameAr: 'حقن ناقص للبطانة', stepCode: 'RS-MOULD', weight: 11 },
+    { code: 'SC-THREAD', name: 'Damaged valve thread', nameAr: 'تلف سنّ الصمام', stepCode: 'RS-VALVE', weight: 9 },
+    { code: 'SC-SURF', name: 'Surface defect', nameAr: 'عيب سطحي', stepCode: 'RS-VISION', weight: 8 },
+  ],
+
+  devices: [
+    { code: 'PLC-AFCC-LINER', name: 'Liner Cell PLC', protocol: 'MODBUS_TCP', port: 5031,
+      unitId: 1, areaCode: 'A-LIN', lineCode: 'CL1', pollMs: 200, tags: [
+      { code: 'WH-01.STATUS', name: 'WH-01 Running', role: 'STATUS', ownerCode: 'WH-01', address: 20, dataType: 'BOOL', pollMs: 200 },
+      { code: 'WH-01.TOTAL', name: 'WH-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'WH-01', address: 21, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'WH-01.GOOD', name: 'WH-01 Good', role: 'COUNTER_GOOD', ownerCode: 'WH-01', address: 22, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-01.STATUS', name: 'IM-01 Running', role: 'STATUS', ownerCode: 'IM-01', address: 0, dataType: 'BOOL', pollMs: 200 },
+      { code: 'IM-01.TOTAL', name: 'IM-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'IM-01', address: 1, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-01.GOOD', name: 'IM-01 Good', role: 'COUNTER_GOOD', ownerCode: 'IM-01', address: 2, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-02.STATUS', name: 'IM-02 Running', role: 'STATUS', ownerCode: 'IM-02', address: 3, dataType: 'BOOL', pollMs: 200 },
+      { code: 'IM-02.TOTAL', name: 'IM-02 Total', role: 'COUNTER_TOTAL', ownerCode: 'IM-02', address: 4, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-02.GOOD', name: 'IM-02 Good', role: 'COUNTER_GOOD', ownerCode: 'IM-02', address: 5, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-03.STATUS', name: 'IM-03 Running', role: 'STATUS', ownerCode: 'IM-03', address: 6, dataType: 'BOOL', pollMs: 200 },
+      { code: 'IM-03.TOTAL', name: 'IM-03 Total', role: 'COUNTER_TOTAL', ownerCode: 'IM-03', address: 7, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-03.GOOD', name: 'IM-03 Good', role: 'COUNTER_GOOD', ownerCode: 'IM-03', address: 8, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-04.STATUS', name: 'IM-04 Running', role: 'STATUS', ownerCode: 'IM-04', address: 9, dataType: 'BOOL', pollMs: 200 },
+      { code: 'IM-04.TOTAL', name: 'IM-04 Total', role: 'COUNTER_TOTAL', ownerCode: 'IM-04', address: 10, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-04.GOOD', name: 'IM-04 Good', role: 'COUNTER_GOOD', ownerCode: 'IM-04', address: 11, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'IM-01.MELTTEMP', name: 'IM-01 Melt temperature', role: 'PROCESS', ownerCode: 'IM-01', address: 300, dataType: 'FLOAT32', unit: '°C', pollMs: 2000, range: [195, 235] },
+      { code: 'IM-01.INJPRESS', name: 'IM-01 Injection pressure', role: 'PROCESS', ownerCode: 'IM-01', address: 302, dataType: 'FLOAT32', unit: 'bar', pollMs: 2000, range: [820, 1150] },
+    ] },
+    { code: 'PLC-AFCC-WIND', name: 'Winding & Curing PLC', protocol: 'MODBUS_TCP', port: 5032,
+      unitId: 1, areaCode: 'A-WND', lineCode: 'CL1', pollMs: 200, tags: [
+      { code: 'FW-01.STATUS', name: 'FW-01 Running', role: 'STATUS', ownerCode: 'FW-01', address: 0, dataType: 'BOOL', pollMs: 200 },
+      { code: 'FW-01.TOTAL', name: 'FW-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'FW-01', address: 1, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'FW-01.GOOD', name: 'FW-01 Good', role: 'COUNTER_GOOD', ownerCode: 'FW-01', address: 2, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'FW-01.TENSION', name: 'FW-01 Fiber tension', role: 'PROCESS', ownerCode: 'FW-01', address: 310, dataType: 'FLOAT32', unit: 'N', pollMs: 500, range: [35, 65] },
+      { code: 'FW-01.SPEED', name: 'FW-01 Winding speed', role: 'PROCESS', ownerCode: 'FW-01', address: 312, dataType: 'FLOAT32', unit: 'rpm', pollMs: 500, range: [80, 160] },
+      { code: 'FW-01.BATHTEMP', name: 'FW-01 Resin bath temperature', role: 'PROCESS', ownerCode: 'FW-01', address: 314, dataType: 'FLOAT32', unit: '°C', pollMs: 2000, range: [28, 42] },
+      { code: 'CU-01.STATUS', name: 'CU-01 Running', role: 'STATUS', ownerCode: 'CU-01', address: 3, dataType: 'BOOL', pollMs: 200 },
+      { code: 'CU-01.TOTAL', name: 'CU-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'CU-01', address: 4, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'CU-01.GOOD', name: 'CU-01 Good', role: 'COUNTER_GOOD', ownerCode: 'CU-01', address: 5, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'CU-01.ZONE1', name: 'CU-01 Zone 1 temperature', role: 'PROCESS', ownerCode: 'CU-01', address: 316, dataType: 'FLOAT32', unit: '°C', pollMs: 2000, range: [120, 165] },
+      { code: 'CU-01.ZONE2', name: 'CU-01 Zone 2 temperature', role: 'PROCESS', ownerCode: 'CU-01', address: 318, dataType: 'FLOAT32', unit: '°C', pollMs: 2000, range: [120, 165] },
+    ] },
+    { code: 'PLC-AFCC-TEST', name: 'Test & Inspection PLC', protocol: 'MODBUS_TCP', port: 5033,
+      unitId: 1, areaCode: 'A-TST', lineCode: 'CL1', pollMs: 200, tags: [
+      { code: 'VT-01.STATUS', name: 'VT-01 Running', role: 'STATUS', ownerCode: 'VT-01', address: 0, dataType: 'BOOL', pollMs: 200 },
+      { code: 'VT-01.TOTAL', name: 'VT-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'VT-01', address: 1, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'VT-01.GOOD', name: 'VT-01 Good', role: 'COUNTER_GOOD', ownerCode: 'VT-01', address: 2, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'VT-01.TORQUE', name: 'VT-01 Applied torque', role: 'PROCESS', ownerCode: 'VT-01', address: 320, dataType: 'FLOAT32', unit: 'N·m', pollMs: 500, range: [90, 120] },
+      { code: 'HT-01.STATUS', name: 'HT-01 Running', role: 'STATUS', ownerCode: 'HT-01', address: 3, dataType: 'BOOL', pollMs: 200 },
+      { code: 'HT-01.TOTAL', name: 'HT-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'HT-01', address: 4, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'HT-01.GOOD', name: 'HT-01 Good', role: 'COUNTER_GOOD', ownerCode: 'HT-01', address: 5, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'HT-01.PRESSURE', name: 'HT-01 Test pressure', role: 'PROCESS', ownerCode: 'HT-01', address: 322, dataType: 'FLOAT32', unit: 'bar', pollMs: 500, range: [0, 500] },
+      { code: 'LT-01.STATUS', name: 'LT-01 Running', role: 'STATUS', ownerCode: 'LT-01', address: 6, dataType: 'BOOL', pollMs: 200 },
+      { code: 'LT-01.TOTAL', name: 'LT-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'LT-01', address: 7, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'LT-01.GOOD', name: 'LT-01 Good', role: 'COUNTER_GOOD', ownerCode: 'LT-01', address: 8, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'VIS-01.STATUS', name: 'VIS-01 Running', role: 'STATUS', ownerCode: 'VIS-01', address: 9, dataType: 'BOOL', pollMs: 200 },
+      { code: 'VIS-01.TOTAL', name: 'VIS-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'VIS-01', address: 10, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'VIS-01.GOOD', name: 'VIS-01 Good', role: 'COUNTER_GOOD', ownerCode: 'VIS-01', address: 11, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'PK-01.STATUS', name: 'PK-01 Running', role: 'STATUS', ownerCode: 'PK-01', address: 12, dataType: 'BOOL', pollMs: 200 },
+      { code: 'PK-01.TOTAL', name: 'PK-01 Total', role: 'COUNTER_TOTAL', ownerCode: 'PK-01', address: 13, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+      { code: 'PK-01.GOOD', name: 'PK-01 Good', role: 'COUNTER_GOOD', ownerCode: 'PK-01', address: 14, dataType: 'BOOL', unit: 'PIECE', pollMs: 200 },
+    ] },
+    { code: 'PM-AFCC-01', name: 'Power Meter — Cylinder Line', protocol: 'MODBUS_TCP', port: 5034,
+      unitId: 1, areaCode: 'A-WND', lineCode: 'CL1', pollMs: 5000, tags: [
+      { code: 'EM-CL1.KW', name: 'CL1 Active power', role: 'ENERGY', ownerCode: 'EM-CL1', address: 3000, dataType: 'FLOAT32', unit: 'kW', pollMs: 5000, range: [0, 260] },
+      { code: 'EM-CL1.KWH', name: 'CL1 Energy total', role: 'ENERGY', ownerCode: 'EM-CL1', address: 3002, dataType: 'FLOAT32', unit: 'kWh', pollMs: 5000 },
+      { code: 'EM-CL1.PF', name: 'CL1 Power factor', role: 'ENERGY', ownerCode: 'EM-CL1', address: 3004, dataType: 'FLOAT32', unit: '', pollMs: 5000, range: [0.75, 0.99] },
+    ] },
+  ],
+
+  gateways: [
+    { code: 'GW-AFCC-01', name: 'AFCC Edge Gateway — Production Hall', location: 'Production hall control room',
+      devices: ['PLC-AFCC-LINER', 'PLC-AFCC-WIND', 'PLC-AFCC-TEST', 'PM-AFCC-01'] },
+  ],
+
+  energyMeters: [
+    { code: 'EM-CL1', meterNumber: 'AFCC-EM-001', name: 'Cylinder Manufacturing Line', nameAr: 'خط تصنيع الأسطوانات',
+      type: 'ELECTRICAL', unit: 'kWh', lineCode: 'CL1', manufacturer: 'Schneider', model: 'PM5110', baselineKw: 196 },
+    { code: 'EM-LIN', meterNumber: 'AFCC-EM-002', name: 'Liner Moulding Area', nameAr: 'منطقة تشكيل البطانة',
+      type: 'ELECTRICAL', unit: 'kWh', areaCode: 'A-LIN', manufacturer: 'Schneider', model: 'PM5110', baselineKw: 340 },
+    { code: 'EM-AUTL', meterNumber: 'AFCC-EM-003', name: 'Utilities', nameAr: 'المرافق',
+      type: 'ELECTRICAL', unit: 'kWh', areaCode: 'A-UTL', manufacturer: 'Siemens', model: 'PAC3200', baselineKw: 165 },
+    { code: 'AM-AFCC', meterNumber: 'AFCC-AM-001', name: 'Compressed Air', nameAr: 'الهواء المضغوط',
+      type: 'COMPRESSED_AIR', unit: 'm3', machineCode: 'CMP-A', manufacturer: 'Atlas Copco', model: 'FlowMeter' },
+  ],
+
+  alarmRules: [
+    { code: 'AL-TENSION-HI', name: 'Fiber tension above limit', nameAr: 'شدّ الألياف فوق الحد',
+      tagCode: 'FW-01.TENSION', condition: 'GT', threshold: 58, severity: 'CRITICAL', delaySeconds: 5, hysteresis: 2 },
+    { code: 'AL-TENSION-LO', name: 'Fiber tension below limit', nameAr: 'شدّ الألياف تحت الحد',
+      tagCode: 'FW-01.TENSION', condition: 'LT', threshold: 42, severity: 'CRITICAL', delaySeconds: 5, hysteresis: 2 },
+    { code: 'AL-BATH-HI', name: 'Resin bath temperature high', nameAr: 'ارتفاع حرارة حوض الراتنج',
+      tagCode: 'FW-01.BATHTEMP', condition: 'GT', threshold: 38, severity: 'WARNING', delaySeconds: 60, hysteresis: 1 },
+    { code: 'AL-CURE-LO', name: 'Cure zone 1 temperature low', nameAr: 'انخفاض حرارة منطقة المعالجة ١',
+      tagCode: 'CU-01.ZONE1', condition: 'LT', threshold: 138, severity: 'CRITICAL', delaySeconds: 120, hysteresis: 3 },
+    { code: 'AL-TORQUE-LO', name: 'Valve torque below specification', nameAr: 'عزم الصمام تحت المواصفة',
+      tagCode: 'VT-01.TORQUE', condition: 'LT', threshold: 95, severity: 'CRITICAL', delaySeconds: 2 },
+    { code: 'AL-MELT-HI', name: 'Melt temperature high', nameAr: 'ارتفاع حرارة الانصهار',
+      tagCode: 'IM-01.MELTTEMP', condition: 'GT', threshold: 230, severity: 'WARNING', delaySeconds: 60, hysteresis: 3 },
+  ],
+};

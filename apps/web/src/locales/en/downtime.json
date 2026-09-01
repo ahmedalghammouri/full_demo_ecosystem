@@ -1,0 +1,38 @@
+{
+  "cockpit": {
+    "title": "Downtime Command Center",
+    "subtitle": "Losses, MTTR/MTBF, planned vs unplanned & root-cause analysis",
+    "unplanned": "Unplanned",
+    "planned": "Planned",
+    "noData": "No downtime in this period",
+    "allRunning": "All machines running",
+    "impact": "OEE",
+    "liveOpen": "Open stops now",
+    "recent": "Recent events",
+    "plannedVsUnplanned": "Planned vs unplanned downtime",
+    "split": "Planned / unplanned split",
+    "byMachine": "Downtime by machine (min)",
+    "byCategory": "By category — Pareto",
+    "kpi": {
+      "total": "Total Downtime",
+      "unplanned": "Unplanned",
+      "planned": "Planned Stops",
+      "oeeImpact": "OEE Impact",
+      "availLoss": "Availability Loss",
+      "mttr": "MTTR",
+      "mtbf": "MTBF"
+    },
+    "sections": {
+      "trend": "Trend & Split",
+      "breakdown": "Loss Breakdown",
+      "events": "Events"
+    },
+    "col": {
+      "machine": "Machine",
+      "reason": "Reason",
+      "category": "Category",
+      "duration": "Duration",
+      "oee": "OEE"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "react", "react-dom"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  // Specs are excluded from the APP build on purpose.
+  //
+  // They need jest's types, which this workspace does not install — the runner
+  // borrows them from the API workspace (see jest.config.js). That borrow works
+  // in a full checkout and NOT inside the Docker web stage, which copies only
+  // this app: `next build` failed there with "Cannot find type definition file
+  // for 'jest'" and took the whole deploy with it.
+  //
+  // So the app build never sees a spec, and the specs are type-checked by
+  // tsconfig.spec.json instead. Two configs rather than one, because the app
+  // and its tests genuinely need different type environments — and the
+  // alternative was a production image that could not be built.
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.spec.tsx"]
+}

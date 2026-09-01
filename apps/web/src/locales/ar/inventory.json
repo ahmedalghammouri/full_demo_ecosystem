@@ -1,0 +1,400 @@
+{
+  "headers": {
+    "overview": { "title": "إدارة المخزون", "subtitle": "المواد وقطع الغيار والمنتجات والدُفعات — القيمة وصحة المخزون والحركة في لمحة" },
+    "products": { "title": "كتالوج المنتجات" },
+    "rawMaterials": { "title": "المواد الخام", "subtitle": "مخزون المواد الخام والتغليف والكيماويات والمستهلكات" },
+    "materials": { "title": "دفعات المواد" },
+    "spareParts": { "title": "قطع الغيار" },
+    "spareRequests": { "title": "طلبات قطع الغيار", "subtitle": "طلبات معلّقة من أوامر الصيانة — اصرف القطع لتلبيتها" },
+    "materialRequests": { "title": "طلبات المواد", "subtitle": "نقص المواد الخام الذي ترفعه أوامر العمل — لبِّ المخزون أو حدِّد تاريخ توريد لإطلاق الأمر" },
+    "storageMoves": { "title": "حركات مواقع التخزين", "subtitle": "نقل المخزون بين مواقع التخزين — كل عملية نقل موثّقة ومتتبَّعة ويُرسَل بها إشعار" },
+    "stockMovements": { "title": "حركات المخزون", "subtitle": "سجل مخزون شامل — كل استلام وصرف وتعديل وحجز واستهلاك." },
+    "storage": { "title": "مواقع التخزين", "subtitle": "مناطق المستودع والصناديق ومناطق التخزين — انقر أي موقع لعرض محتوياته" },
+    "bom": { "title": "قائمة المكوّنات BOM", "subtitle": "تعريف متطلبات المواد الخام لكل منتج نهائي" },
+    "reports": { "title": "تقارير المخزون", "subtitle": "نظرة عامة على مستويات المخزون والمواد والتخزين" }
+  },
+  "productsCount": "{{count}} منتجًا مع قائمة المكوّنات",
+  "materialsCount": "{{count}} دفعة",
+  "expired": "{{count}} منتهية الصلاحية",
+  "partsTotal": "{{count}} قطعة إجمالاً",
+  "lowStock": "{{count}} منخفضة المخزون",
+  "products": {
+    "searchSku": "ابحث بالـ SKU أو رقم الصنف…",
+    "category": "الفئة…",
+    "brand": "العلامة…",
+    "noProducts": "لا توجد منتجات",
+    "selectAll": "تحديد الكل",
+    "col": {
+      "item": "رقم الصنف", "nameCode": "الاسم / الرمز", "family": "العائلة", "brand": "العلامة",
+      "category": "الفئة", "packaging": "التعبئة", "unitsBreakdown": "وحدات/داخلي/كرتون/منصة",
+      "weight": "الوزن", "dimensions": "الأبعاد (ط×ع×ا)", "bom": "المكوّنات", "storage": "التخزين", "actions": "إجراءات"
+    },
+    "bomCol": { "code": "الرمز", "component": "المكوّن", "qty": "الكمية", "unit": "الوحدة", "type": "النوع" }
+  },
+  "pdform": {
+    "createTitle": "إنشاء منتج جديد", "createDesc": "أضف صنف SKU جديد إلى الكتالوج", "editTitle": "تعديل المنتج",
+    "cancel": "إلغاء", "creating": "جارٍ الإنشاء...", "createProduct": "إنشاء المنتج", "saving": "جارٍ الحفظ...", "saveChanges": "حفظ التغييرات",
+    "productCode": "رمز المنتج", "itemNumber": "رقم الصنف", "productName": "اسم المنتج",
+    "nameAr": "الاسم (عربي)", "shortName": "الاسم المختصر",
+    "brand": "العلامة التجارية", "category": "الفئة", "packagingType": "نوع التعبئة", "baseUnit": "الوحدة الأساسية", "baseWeight": "الوزن الأساسي",
+    "unitsPerInner": "وحدات لكل عبوة داخلية", "innersPerCarton": "عبوات داخلية لكل كرتون", "cartonsPerPallet": "كراتين لكل منصة",
+    "weightDims": "الوزن والأبعاد", "netWeight": "الوزن الصافي", "unit": "الوحدة", "dimUnit": "وحدة الأبعاد",
+    "length": "الطول", "width": "العرض", "height": "الارتفاع",
+    "storageFg": "موقع التخزين (منتجات جاهزة)", "selectLocation": "اختر الموقع…", "searchLocation": "ابحث بالرمز أو الاسم…"
+  },
+  "rawMaterials": {
+    "allMaterials": "كل المواد",
+    "search": "ابحث بالرمز أو الاسم…",
+    "allCategories": "كل الفئات",
+    "lowStock": "مخزون منخفض",
+    "noMaterials": "لا توجد مواد خام",
+    "selectAll": "تحديد الكل",
+    "col": {
+      "code": "الرمز", "name": "الاسم", "category": "الفئة", "unit": "الوحدة", "onHand": "المتوفر",
+      "available": "المتاح", "reserved": "محجوز", "minStock": "الحد الأدنى", "unitCost": "تكلفة الوحدة",
+      "location": "الموقع", "status": "الحالة"
+    }
+  },
+  "rmform": {
+    "createTitle": "إضافة مادة خام", "editTitle": "تعديل — {{name}}",
+    "createDesc": "أدخل التفاصيل لإضافة مادة خام جديدة إلى المخزون.", "editDesc": "حدّث تفاصيل المادة أدناه.",
+    "cancel": "إلغاء", "saving": "جارٍ الحفظ…", "creating": "جارٍ الإنشاء…", "saveChanges": "حفظ التغييرات", "addMaterial": "إضافة مادة",
+    "code": "الرمز", "codePlaceholder": "مثال: RM-001", "category": "الفئة", "selectCategory": "اختر الفئة", "none": "بدون",
+    "name": "الاسم", "namePlaceholder": "اسم المادة", "unit": "الوحدة", "unitPlaceholder": "كجم، لتر، قطعة…",
+    "unitCost": "تكلفة الوحدة (ر.س)", "minStock": "الحد الأدنى للمخزون", "maxStock": "الحد الأقصى للمخزون", "optional": "اختياري",
+    "reorderPoint": "نقطة إعادة الطلب", "leadTime": "مدة التوريد (أيام)",
+    "storageLocation": "موقع التخزين", "selectLocation": "اختر الموقع…", "searchLocation": "ابحث بالرمز أو الاسم…",
+    "supplierName": "اسم المورّد"
+  },
+  "adjust": {
+    "title": "تعديل المخزون", "titleNamed": "تعديل المخزون — {{name}}",
+    "desc": "سجّل استلامًا أو سحبًا للمخزون. يُكتب هذا كحركة مخزون في السجل.",
+    "cancel": "إلغاء", "saving": "جارٍ الحفظ…", "apply": "تطبيق التعديل",
+    "currentOnHand": "المتوفر حاليًا", "addStock": "إضافة مخزون", "removeStock": "سحب مخزون",
+    "quantity": "الكمية ({{unit}})", "reason": "السبب", "reasonPlaceholder": "مثال: تصحيح جرد دوري، شطب تالف…",
+    "newOnHand": "المتوفر بعد التعديل", "negativeWarn": "سيؤدي التعديل إلى مخزون سالب."
+  },
+  "history": { "title": "حركات المخزون" },
+  "lots": {
+    "search": "ابحث بالمادة أو رقم اللوت…",
+    "noLots": "لا توجد دفعات مواد",
+    "selectAll": "تحديد الكل",
+    "col": {
+      "material": "المادة", "lot": "رقم اللوت", "supplier": "المورّد", "qty": "الكمية", "remaining": "المتبقي",
+      "usedPct": "% المستخدم", "location": "الموقع", "received": "تاريخ الاستلام", "expiry": "الصلاحية",
+      "status": "الحالة", "actions": "إجراءات"
+    }
+  },
+  "stockMovements": {
+    "search": "ابحث بالصنف أو المرجع…",
+    "noMovements": "لا توجد حركات مخزون",
+    "col": {
+      "date": "التاريخ", "item": "الصنف", "type": "النوع", "movement": "الحركة", "qty": "الكمية",
+      "beforeAfter": "قبل ← بعد", "cost": "التكلفة", "reference": "المرجع", "by": "بواسطة"
+    }
+  },
+  "spareParts": {
+    "search": "ابحث عن القطع…", "category": "الفئة…", "noParts": "لا توجد قطع غيار", "selectAll": "تحديد الكل",
+    "col": {
+      "part": "رقم القطعة", "name": "الاسم", "category": "الفئة", "supplier": "المورّد", "stock": "المخزون",
+      "min": "الحد الأدنى", "unitCost": "تكلفة الوحدة", "value": "القيمة (ر.س)", "location": "الموقع", "lastUsed": "آخر استخدام", "actions": "إجراءات"
+    }
+  },
+  "spform": {
+    "editTitle": "تعديل قطعة الغيار", "createTitle": "إنشاء قطعة غيار جديدة", "createDesc": "أضف قطعة غيار جديدة إلى المخزون",
+    "cancel": "إلغاء", "saving": "جارٍ الحفظ...", "saveChanges": "حفظ التغييرات", "creating": "جارٍ الإنشاء...", "createPart": "إنشاء القطعة",
+    "partNumber": "رقم القطعة", "category": "الفئة", "name": "الاسم", "description": "الوصف",
+    "manufacturer": "الصانع", "supplier": "المورّد", "unitCost": "تكلفة الوحدة (ر.س)",
+    "minStock": "الحد الأدنى للمخزون", "maxStock": "الحد الأقصى للمخزون", "storageLocation": "موقع التخزين",
+    "selectLocation": "اختر الموقع…", "searchLocation": "ابحث بالرمز أو الاسم…", "binNumber": "رقم الصندوق",
+    "deleteTitle": "حذف {{name}}؟", "deleteDesc": "سيؤدي هذا إلى إزالة قطعة الغيار نهائيًا من المخزون.",
+    "restore": "استعادة", "archive": "أرشفة"
+  },
+  "spareRequests": {
+    "pending": "الطلبات المعلّقة", "search": "ابحث بأمر العمل أو القطعة…",
+    "col": {
+      "wo": "أمر العمل", "machine": "الماكينة", "priority": "الأولوية", "part": "القطعة", "partNo": "رقم القطعة",
+      "req": "المطلوب", "availableStock": "المتوفر بالمخزون", "location": "الموقع", "dueDate": "تاريخ الاستحقاق"
+    }
+  },
+  "storage": {
+    "search": "ابحث بالرمز أو الاسم…", "allZones": "كل المناطق", "noLocations": "لا توجد مواقع تخزين بعد",
+    "col": { "codeName": "الرمز / الاسم", "category": "الفئة", "stockQty": "كمية المخزون", "value": "القيمة (ر.س)", "status": "الحالة" },
+    "itemsStored": "عنصر مخزّن", "itemsTracked": "عناصر متتبَّعة", "loading": "جارٍ تحميل المواقع...",
+    "loadingShort": "جارٍ التحميل...", "inactive": "غير نشط",
+    "tab": { "summary": "ملخص", "raw": "المواد الخام", "lots": "دفعات المواد", "parts": "قطع الغيار", "skus": "المنتجات/SKU", "fg": "المنتجات التامة" },
+    "zones": {
+      "RAW_MATERIAL": "مخزن المواد الخام", "SPARE_PARTS": "غرفة قطع الغيار", "FINISHED_GOODS": "المنتجات الجاهزة",
+      "QUARANTINE": "الحجر / حجز الجودة", "PRODUCTION": "صالة الإنتاج", "DISPATCH": "الإرسال / الشحن"
+    },
+    "zonesShort": {
+      "RAW_MATERIAL": "مواد خام", "SPARE_PARTS": "قطع غيار", "FINISHED_GOODS": "جاهزة",
+      "QUARANTINE": "حجر", "PRODUCTION": "إنتاج", "DISPATCH": "إرسال"
+    }
+  },
+  "sform": {
+    "createTitle": "موقع تخزين جديد", "editTitle": "تعديل موقع التخزين",
+    "cancel": "إلغاء", "saving": "جارٍ الحفظ...", "createLocation": "إنشاء الموقع", "saveChanges": "حفظ التغييرات",
+    "locationCode": "رمز الموقع", "codeHint": "مثال: RM-A01، SP-B03",
+    "zone": "المنطقة", "selectZone": "اختر المنطقة...", "name": "الاسم", "namePlaceholder": "ممر A، رف 1",
+    "description": "الوصف", "descPlaceholder": "ملاحظات اختيارية",
+    "capacity": "السعة (اختياري)", "capacityPlaceholder": "أقصى عدد وحدات / منصات",
+    "deactivateTitle": "إلغاء تنشيط الموقع؟",
+    "deactivateMsg": "سيُخفى هذا الموقع من التعيينات الجديدة. تُحفظ مراجع المخزون الحالية.",
+    "deactivating": "جارٍ إلغاء التنشيط...", "deactivate": "إلغاء التنشيط"
+  },
+  "bomView": {
+    "search": "ابحث باسم المنتج أو رمزه…", "noBoms": "لا توجد قوائم مكوّنات. أنشئ الأولى.",
+    "newBom": "قائمة مكوّنات جديدة", "loading": "جارٍ تحميل قوائم المكوّنات...",
+    "infoBanner": "تربط قائمة المكوّنات (BOM) المنتج النهائي (SKU) بالمواد الخام والتغليف والمستهلكات اللازمة لإنتاج وحدة واحدة. يضيف معامل الهالك هامشًا (مثال: 0.05 = 5% إضافية). تُستخدم قوائم المكوّنات المعتمدة في الإنتاج لحساب متطلبات المواد تلقائيًا. تُظهر دفعات المواد المخزون المتاح لكل مادة خام.",
+    "createTitle": "إنشاء قائمة مكوّنات", "cancel": "إلغاء", "creating": "جارٍ الإنشاء...", "createBom": "إنشاء قائمة المكوّنات",
+    "product": "المنتج (SKU)", "selectProduct": "اختر المنتج...", "searchProduct": "ابحث برقم الصنف أو الاسم…",
+    "version": "الإصدار", "versionPlaceholder": "1.0",
+    "foundProcess": "تم العثور على عملية تصنيع: {{name}} الإصدار {{version}}",
+    "processSummary": "{{steps}} خطوات · {{materials}} مادة إدخال للخطوات — يمكن اشتقاق قائمة المكوّنات تلقائيًا (مجمّعة لكل وحدة نهائية، كل سطر مرتبط بخطوته).",
+    "processNoMaterials": "لا توجد مواد للخطوات في هذه العملية بعد — أضِفها في عمليات التصنيع، أو أدخل قائمة المكوّنات يدويًا أدناه.",
+    "deriving": "جارٍ الاشتقاق…", "deriveFromProcess": "اشتقاق من العملية",
+    "noProcessYet": "لا توجد عملية تصنيع لهذا المنتج بعد. أدخل المواد أدناه — بعد إنشاء قائمة المكوّنات يمكنك توليد عملية مسوّدة منها بنقرة واحدة.",
+    "rawMaterialComponents": "مكوّنات المواد الخام", "addRow": "إضافة صف",
+    "selectMaterial": "اختر المادة...", "searchMaterial": "ابحث بالرمز أو الاسم…",
+    "unitFromMasterTip": "الوحدة مأخوذة من سجل المادة الخام (وحدة قياس موحّدة)",
+    "editTitle": "تعديل قائمة المكوّنات", "saving": "جارٍ الحفظ...", "saveChanges": "حفظ التغييرات",
+    "notes": "ملاحظات", "notesOptional": "ملاحظات (اختياري)", "notesPlaceholder": "ملاحظات التغيير الهندسي...",
+    "approvedNote": "قائمة المكوّنات هذه معتمدة. لا يمكن تغيير غير الملاحظات دون إنشاء إصدار جديد.",
+    "deleteTitle": "حذف قائمة المكوّنات؟",
+    "deleteDesc": "سيؤدي هذا إلى حذف قائمة المكوّنات الخاصة بـ {{name}} (الإصدار {{version}}) وكل أسطر موادها البالغة {{count}} نهائيًا.",
+    "approvedCantDelete": "لا يمكن حذف قوائم المكوّنات المعتمدة.", "deleting": "جارٍ الحذف...", "deleteBom": "حذف قائمة المكوّنات",
+    "addMaterialTitle": "إضافة مادة إلى قائمة المكوّنات", "adding": "جارٍ الإضافة...", "addMaterial": "إضافة مادة",
+    "rawMaterial": "المادة الخام", "quantityPerUnit": "الكمية لكل وحدة", "unit": "الوحدة",
+    "fromMaterialMaster": "(من سجل المادة)",
+    "lotsMeta": "{{count}} دفعات · {{remaining}} {{unit}}",
+    "scrapFactor": "معامل الهالك (مثال: 0.05 = 5%)",
+    "noMaterialsDefined": "لا توجد مواد معرّفة. أضِف المكوّن الأول.",
+    "approved": "معتمدة", "draft": "مسوّدة", "stale": "قديمة",
+    "derivedFrom": "مشتقّة من", "linkedTo": "مرتبطة بـ",
+    "componentsCount": "{{count}} مكوّنات", "estCost": "التكلفة التقديرية: {{cost}}", "estCostNa": "التكلفة التقديرية: غير متاحة",
+    "perUnit": "{{cost}} ر.س / وحدة",
+    "reDerive": "إعادة الاشتقاق", "reDeriving": "جارٍ إعادة الاشتقاق…", "reDeriveTip": "تغيّرت العملية المصدر — اشتق إصدارًا جديدًا من قائمة المكوّنات منها",
+    "generateProcess": "توليد عملية", "generating": "جارٍ التوليد…", "generateProcessTip": "إنشاء عملية تصنيع مسوّدة من قائمة المكوّنات هذه (تدفق موجّه)",
+    "approve": "اعتماد", "addItem": "إضافة عنصر",
+    "lotsBadge": "{{count}} دفعات · {{remaining}} {{unit}}", "noLotsBadge": "لا توجد دفعات",
+    "totalCostPerUnit": "إجمالي تكلفة المواد لكل وحدة",
+    "col": {
+      "material": "المادة", "qtyUnit": "الكمية / الوحدة", "unit": "الوحدة", "scrapPct": "% الهالك",
+      "code": "الرمز", "step": "الخطوة", "scrap": "الهالك", "totalQty": "الكمية الإجمالية", "unitCost": "تكلفة الوحدة", "lineCost": "تكلفة السطر", "lots": "الدفعات"
+    }
+  },
+  "overview": {
+    "rawMaterials": "المواد الخام", "materialLots": "دفعات المواد", "products": "المنتجات", "spareParts": "قطع الغيار",
+    "viewAll": "عرض الكل", "noRecentMovements": "لا توجد حركات حديثة",
+    "kpi": {
+      "totalValue": "إجمالي قيمة المخزون", "lowStockAlerts": "تنبيهات انخفاض المخزون", "lotsExpiring": "دفعات تنتهي صلاحيتها (30 يومًا)", "movements7d": "الحركات (7 أيام)"
+    },
+    "cat": { "rawMaterials": "المواد الخام", "spareParts": "قطع الغيار", "products": "المنتجات / SKU", "materialLots": "دفعات المواد" },
+    "expired": "منتهية الصلاحية", "low": "منخفضة",
+    "reorderAlerts": "تنبيهات إعادة الطلب", "allHealthy": "جميع مستويات المخزون سليمة ✓",
+    "recentMovements": "حركات المخزون الأخيرة", "item": "صنف",
+    "kind": { "raw": "خام", "spare": "غيار" }, "min": "الحد الأدنى"
+  },
+  "reports": {
+    "section": "التقارير", "lowStockAlerts": "تنبيهات انخفاض المخزون", "low": "منخفض",
+    "noLowStockDetails": "لا تتوفر تفاصيل عن المواد منخفضة المخزون.",
+    "pctOfMinimum": "{{pct}}% من الحد الأدنى", "viewAllLowStock": "عرض كل المخزون المنخفض",
+    "kpi": { "totalSkus": "إجمالي الأصناف SKU", "rawMaterials": "المواد الخام", "lowStockAlerts": "تنبيهات انخفاض المخزون", "storageLocations": "مواقع التخزين" },
+    "cards": {
+      "stockLevels": { "title": "مستويات المخزون", "desc": "المخزون الحالي مقابل الحدود الدنيا/القصوى" },
+      "productInventory": { "title": "مخزون المنتجات", "desc": "كتالوج الأصناف مع حالة المخزون" },
+      "spareParts": { "title": "قطع الغيار", "desc": "توفر قطع الغيار والطلبات" },
+      "stockMovements": { "title": "حركات المخزون", "desc": "سجل الاستلام والصرف والتعديلات" },
+      "bomRequirements": { "title": "متطلبات قوائم المكوّنات", "desc": "متطلبات المواد من قوائم المكوّنات النشطة" },
+      "storageUtilization": { "title": "استغلال التخزين", "desc": "إشغال المواقع وتنظيمها" }
+    }
+  },
+  "lotsView": {
+    "receiveLot": "استلام دفعة", "allStatus": "كل الحالات", "statusLabel": "الحالة",
+    "selectRow": "تحديد الصف", "restore": "استعادة", "archive": "أرشفة", "delete": "حذف",
+    "formTitle": "استلام دفعة مواد", "receive": "استلام",
+    "rawMaterialMaster": "المادة الخام (السجل)", "selectRawMaterial": "اختر المادة الخام...", "searchByCodeName": "ابحث بالرمز أو الاسم…",
+    "lotNumber": "رقم اللوت", "supplier": "المورّد", "quantity": "الكمية", "unit": "الوحدة", "expiryDate": "تاريخ الصلاحية", "storageLocation": "موقع التخزين",
+    "selectLocation": "اختر الموقع…",
+    "createdSuccess": "تم إنشاء دفعة المواد بنجاح", "deletedSuccess": "تم حذف دفعة المواد بنجاح",
+    "createError": "فشل إنشاء الدفعة", "deleteError": "فشل حذف الدفعة",
+    "deleteTitle": "حذف الدفعة {{lot}}؟", "deleteDesc": "سيؤدي هذا إلى حذف دفعة المواد هذه نهائيًا."
+  },
+  "productsView": {
+    "addProduct": "إضافة منتج", "selectRow": "تحديد الصف", "edit": "تعديل", "restore": "استعادة", "archive": "أرشفة", "delete": "حذف",
+    "items": "{{count}} عناصر", "bomTitle": "قائمة المكوّنات",
+    "createdSuccess": "تم إنشاء المنتج بنجاح", "updatedSuccess": "تم تحديث المنتج بنجاح", "deletedSuccess": "تم حذف المنتج بنجاح",
+    "createError": "فشل إنشاء المنتج", "updateError": "فشل تحديث المنتج", "deleteError": "فشل حذف المنتج"
+  },
+  "rawMaterialsView": {
+    "addMaterial": "إضافة مادة",
+    "kpi": { "totalMaterials": "إجمالي المواد", "lowStock": "مخزون منخفض", "totalStockValue": "إجمالي قيمة المخزون" },
+    "activeRecords": "سجلات مواد نشطة", "belowMinimum": "مواد دون الحد الأدنى", "sarAcross": "ر.س عبر كل المواد",
+    "selectRow": "تحديد الصف", "addFirstHint": "أضِف أول مادة باستخدام الزر أعلاه",
+    "status": { "lowStock": "مخزون منخفض", "reorder": "إعادة طلب", "normal": "طبيعي" },
+    "menu": { "adjustStock": "تعديل المخزون", "viewLots": "عرض الدفعات", "history": "السجل", "edit": "تعديل", "restore": "استعادة", "archive": "أرشفة", "delete": "حذف" },
+    "noMovementsYet": "لا توجد حركات مخزون بعد", "onHand": "متوفر",
+    "materialLots": "دفعات المواد", "noLotsReceived": "لم يتم استلام دفعات لهذه المادة", "receiveFromLots": "استلم دفعة من صفحة دفعات المواد.",
+    "lot": { "qty": "الكمية", "remaining": "المتبقي", "received": "الاستلام", "expiry": "الصلاحية", "supplier": "المورّد", "location": "الموقع", "used": "مستخدم" },
+    "deleteTitle": "حذف \"{{name}}\"؟", "deleteDesc": "سيؤدي هذا إلى إزالة هذه المادة الخام نهائيًا من المخزون. لا يمكن التراجع عن هذا الإجراء.",
+    "toast": {
+      "archived": "تمت أرشفة المادة الخام", "archivedDesc": "أُخفيت من القائمة النشطة — بدّل المرشّح إلى \"مؤرشف\" للاستعادة.",
+      "restored": "تمت استعادة المادة الخام", "created": "تم إنشاء المادة الخام بنجاح", "updated": "تم تحديث المادة الخام", "deleted": "تم حذف المادة الخام",
+      "error": "خطأ", "stockAdjusted": "تم تعديل المخزون",
+      "failArchive": "فشلت الأرشفة", "failRestore": "فشلت الاستعادة", "failCreate": "فشل إنشاء المادة", "failUpdate": "فشل تحديث المادة", "failDelete": "فشل حذف المادة", "failAdjust": "فشل تعديل المخزون"
+    }
+  },
+  "storageMoves": {
+    "newTransfer": "نقل جديد",
+    "formDesc": "نقل عنصر من موقع تخزين إلى آخر.",
+    "tableTitle": "سجل عمليات النقل",
+    "search": "بحث في عمليات النقل…",
+    "kpi": { "total": "إجمالي عمليات النقل" },
+    "kind": { "lot": "دفعة مواد", "raw": "مادة خام", "spare": "قطعة غيار", "product": "منتج" },
+    "col": { "transfer": "النقل", "item": "العنصر", "from": "من", "to": "إلى", "qty": "الكمية", "date": "التاريخ" },
+    "empty": "لا توجد عمليات نقل بعد",
+    "emptyHint": "انقل المخزون بين المواقع لبناء سجل التدقيق",
+    "from": "موقع المصدر",
+    "to": "موقع الوجهة",
+    "itemKind": "نوع العنصر",
+    "item": "العنصر",
+    "qty": "الكمية المراد نقلها",
+    "maxAvail": "بحد أقصى {{count}}",
+    "qtyHint": "اتركها كاملة لنقل الدفعة بالكامل؛ النقل الجزئي يقسّم الدفعة.",
+    "relocateHint": "ينقل العنصر بالكامل إلى موقع الوجهة.",
+    "selectLocation": "اختر موقعًا…",
+    "selectLocationFirst": "اختر موقع المصدر أولاً",
+    "selectItem": "اختر عنصرًا…",
+    "notes": "ملاحظات (اختياري)",
+    "notesPlaceholder": "مثال: سبب النقل…",
+    "cancel": "إلغاء",
+    "execute": "تنفيذ النقل",
+    "submitting": "جارٍ النقل…",
+    "createdSuccess": "تم النقل",
+    "createdFailed": "فشل النقل"
+  },
+  "matReqView": {
+    "kpi": {
+      "open": "طلبات مفتوحة", "openHint": "بانتظار إجراء المخزون",
+      "awaiting": "بانتظار الرد", "awaitingHint": "لا يوجد تاريخ توريد بعد",
+      "scheduled": "توريد مجدول", "scheduledHint": "تم تحديد موعد وصول من المورّد",
+      "highCritical": "عالية / حرجة", "highCriticalHint": "أوامر عمل عاجلة محجوبة"
+    },
+    "status": { "pending": "معلّق", "scheduled": "مجدول", "partial": "جزئي", "fulfilled": "مُلبّى", "cancelled": "ملغى" },
+    "filter": { "open": "مفتوح", "archived": "المؤرشف" },
+    "selectAll": "تحديد الكل",
+    "selectedCount": "{{count}} محدد",
+    "bulkSuccess": "تم تطبيق {{action}}",
+    "bulkFailed": "فشل الإجراء الجماعي",
+    "bulk": { "cancel": "إلغاء", "archive": "أرشفة", "unarchive": "إلغاء الأرشفة", "delete": "حذف" },
+    "mode": { "adjust": "تعديل المخزون", "lots": "استلام كدفعات" },
+    "lots": {
+      "title": "دفعات المواد المستلمة",
+      "total": "الإجمالي: {{total}} {{unit}}",
+      "lotNo": "رقم الدفعة", "qty": "الكمية", "expiry": "الصلاحية", "location": "الموقع",
+      "defaultLoc": "الموقع الافتراضي", "add": "إضافة دفعة أخرى"
+    },
+    "tableTitle": "طلبات نقص المواد",
+    "search": "بحث في الطلبات…",
+    "col": { "request": "الطلب", "wo": "أمر العمل", "material": "المادة", "needed": "المطلوب", "available": "المتاح", "short": "النقص", "status": "الحالة", "eta": "موعد التوريد", "supplier": "المورّد" },
+    "leadDays": "مهلة {{count}} يوم",
+    "empty": "لا توجد طلبات مواد",
+    "emptyHint": "أوامر العمل ذات التوفر الكامل للمواد لا ترفع طلبات",
+    "respond": "رد",
+    "respondTitle": "الرد على طلب المواد",
+    "respondDesc": "{{material}} لأمر العمل {{wo}}",
+    "respondSuccess": "تم تحديث الطلب",
+    "respondFailed": "فشل تحديث الطلب",
+    "cancel": "إلغاء",
+    "submit": "إرسال",
+    "submitting": "جارٍ الإرسال…",
+    "action": { "fulfill": "تلبية المخزون", "setEta": "تحديد التوريد", "cancel": "إلغاء الطلب" },
+    "summary": { "material": "المادة", "wo": "أمر العمل", "needed": "المطلوب", "available": "المتاح الآن", "short": "النقص المتبقي", "supplier": "المورّد" },
+    "field": {
+      "qtyToAdd": "الكمية المستلمة",
+      "qtyHint": "تُضاف إلى مخزون المادة الخام. يلزم {{count}} {{unit}} لتغطية هذا الطلب بالكامل.",
+      "eta": "تاريخ ووقت التوريد",
+      "etaHint": "سيُؤجَّل بدء أمر العمل إلى هذا التاريخ ولا يمكن بدؤه قبله.",
+      "cancelWarn": "إلغاء هذا الطلب يترك النقص دون حل. يبقى أمر العمل محجوبًا ما لم يغطِّه طلب آخر.",
+      "notes": "ملاحظات (اختياري)",
+      "notesPlaceholder": "مثال: رقم أمر الشراء، تأكيد المورّد…"
+    }
+  },
+  "spareRequestsView": {
+    "kpi": { "totalPending": "إجمالي المعلّق", "insufficientStock": "مخزون غير كافٍ", "highCritical": "أولوية عالية / حرجة" },
+    "awaitingIssue": "طلبات بانتظار الصرف", "belowRequired": "قطع دون المخزون المطلوب", "urgentWaiting": "أوامر عمل عاجلة بانتظار",
+    "allPriorities": "كل الأولويات",
+    "priority": { "critical": "حرجة", "high": "عالية", "medium": "متوسطة", "low": "منخفضة" },
+    "noPending": "لا توجد طلبات قطع غيار معلّقة", "noPendingHint": "تم تلبية جميع الطلبات أو لا توجد طلبات بعد",
+    "short": "ناقص", "min": "الحد الأدنى {{count}}", "alreadyIssued": "{{count}} مصروفة مسبقًا", "issue": "صرف",
+    "issueTitle": "صرف قطع لأمر العمل", "issueDesc": "صرف {{part}} لأمر العمل {{wo}}",
+    "cancel": "إلغاء", "issuing": "جارٍ الصرف…", "confirmIssue": "تأكيد الصرف",
+    "summary": { "partNumber": "رقم القطعة", "machine": "الماكينة", "priority": "الأولوية", "qtyRequested": "الكمية المطلوبة", "availableInStock": "المتوفر بالمخزون", "storageLocation": "موقع التخزين", "unitCost": "تكلفة الوحدة" },
+    "unitsRemaining": "{{count}} وحدات متبقية", "units": "{{count}} وحدات",
+    "insufficientWarn": "المخزون أقل من الكمية المطلوبة. يمكنك صرف ما يصل إلى {{count}} وحدات فقط.",
+    "quantityToIssue": "الكمية المراد صرفها", "max": "(بحد أقصى {{count}})",
+    "exceedsStock": "يتجاوز المخزون المتاح ({{count}} وحدات)", "exceedsRequested": "يتجاوز الكمية المطلوبة — صرف زائد جزئي",
+    "notesOptional": "ملاحظات (اختياري)", "notesPlaceholder": "مثال: صُرف من الصندوق A-12، الرف 3…",
+    "issuedSuccess": "تم صرف القطع بنجاح", "issueFailed": "فشل صرف القطع"
+  },
+  "sparePartsView": {
+    "addPart": "إضافة قطعة", "lowStockOnly": "المنخفض فقط", "selectRow": "تحديد الصف",
+    "menu": { "adjustStock": "تعديل المخزون", "edit": "تعديل", "restore": "استعادة", "archive": "أرشفة", "delete": "حذف" },
+    "adjustTitle": "تعديل المخزون — {{name}}", "current": "الحالي", "quantity": "الكمية",
+    "cancel": "إلغاء", "saving": "جارٍ الحفظ…", "apply": "تطبيق",
+    "adjust": { "add": "إضافة", "remove": "سحب", "set": "تعيين" },
+    "toast": { "created": "تم إنشاء قطعة الغيار", "updated": "تم تحديث قطعة الغيار", "deleted": "تم حذف قطعة الغيار", "restored": "تمت استعادة قطعة الغيار", "archived": "تمت أرشفة قطعة الغيار", "error": "خطأ", "failCreate": "فشل الإنشاء", "failUpdate": "فشل التحديث", "failDelete": "فشل الحذف", "fail": "فشل" }
+  },
+  "stockMovementsView": {
+    "exportTitle": "حركات المخزون", "allItemTypes": "كل أنواع الأصناف", "allMovements": "كل الحركات",
+    "from": "من", "to": "إلى",
+    "entity": { "SPARE_PART": "قطعة غيار", "RAW_MATERIAL": "مادة خام", "PRODUCT": "منتج" },
+    "exportCol": { "date": "التاريخ", "type": "النوع", "itemCode": "رمز الصنف", "item": "الصنف", "movement": "الحركة", "qty": "الكمية", "before": "قبل", "after": "بعد", "cost": "التكلفة", "reference": "المرجع", "by": "بواسطة" }
+  },
+  "storageView": {
+    "refresh": "تحديث", "newLocation": "موقع جديد",
+    "kpi": { "totalLocations": "إجمالي المواقع", "active": "نشط" },
+    "createFirst": "أنشئ موقعك الأول لبدء تتبّع أماكن المخزون.",
+    "loadingContents": "جارٍ تحميل المحتويات...",
+    "codePlaceholder": "RM-A01",
+    "menu": { "viewContents": "عرض المحتويات", "editLocation": "تعديل الموقع", "printQr": "طباعة ملصق QR", "deactivate": "إلغاء التنشيط", "delete": "حذف" },
+    "empty": "فارغ", "noCapacity": "لم تُحدَّد سعة", "itemsCount": "{{count}} عناصر", "capacityItems": "{{current}} / {{capacity}} عناصر",
+    "chipRm": "{{count}} مادة خام", "chipLots": "{{count}} دفعات", "chipParts": "{{count}} قطع",
+    "lotStatus": { "ACTIVE": "نشطة", "EXPIRED": "منتهية الصلاحية", "QUARANTINE": "حجر", "CONSUMED": "مستهلكة" },
+    "clickToView": "انقر لعرض المحتويات",
+    "sheetKpi": { "totalItems": "إجمالي العناصر", "rawMaterials": "المواد الخام", "activeLots": "الدفعات النشطة", "stockValue": "قيمة المخزون" },
+    "capacityUtilization": "استغلال السعة", "itemsCapacity": "{{items}} عناصر / {{capacity}} سعة",
+    "belowMin": "{{count}} عناصر دون الحد الأدنى للمخزون", "expiredLots": "{{count}} دفعات مواد منتهية الصلاحية في هذا الموقع",
+    "breakdown": { "rawMaterials": "المواد الخام", "materialLots": "دفعات المواد", "spareParts": "قطع الغيار", "products": "المنتجات/SKU" },
+    "estStockValue": "قيمة المخزون التقديرية", "stockValueBasis": "بناءً على تكاليف الوحدة × الكميات في هذا الموقع",
+    "emptyLocation": "موقع فارغ", "emptyLocationHint": "لا يوجد مخزون مُخصَّص حاليًا لهذا الموقع.",
+    "lowStock": "مخزون منخفض", "ok": "سليم",
+    "noRawAt": "لا توجد مواد خام في هذا الموقع", "noLotsAt": "لا توجد دفعات مواد في هذا الموقع", "noPartsAt": "لا توجد قطع غيار في هذا الموقع", "noSkusAt": "لا توجد منتجات/أصناف مخصّصة لهذا الموقع",
+    "lotsCol": { "lotMaterial": "اللوت / المادة", "bin": "الصندوق", "qtyRemaining": "الكمية / المتبقي", "received": "الاستلام", "status": "الحالة", "exp": "الانتهاء" },
+    "partsCol": { "partNameHead": "رقم القطعة / الاسم", "binCategory": "الصندوق / الفئة", "stockQty": "كمية المخزون", "value": "القيمة (ر.س)", "status": "الحالة" },
+    "skusCol": { "skuCode": "رمز SKU", "name": "الاسم", "itemNo": "رقم الصنف", "category": "الفئة", "onHand": "الرصيد" },
+    "noFgAt": "لا توجد دفعات منتجات تامة في هذا الموقع",
+    "fgCol": { "lotSku": "اللوت / المنتج", "produced": "المُنتَج", "remaining": "المتبقي", "producedAt": "تاريخ الإنتاج", "status": "الحالة" },
+    "adjustBtn": "تعديل",
+    "adjust": {
+      "title": "تعديل المخزون",
+      "subtitle": "تحديث أو تصحيح الكمية المتاحة",
+      "mode": "الإجراء",
+      "modeAdd": "إضافة",
+      "modeRemove": "خصم",
+      "modeSet": "ضبط إلى",
+      "modeAddHint": "زيادة الرصيد بهذه الكمية",
+      "modeRemoveHint": "إنقاص الرصيد بهذه الكمية",
+      "modeSetHint": "ضبط الرصيد على هذه الكمية بالضبط (جرد فعلي)",
+      "quantity": "الكمية",
+      "reason": "السبب",
+      "reasonPlaceholder": "مثال: جرد فعلي، تلف، تصحيح…",
+      "current": "الحالي",
+      "resulting": "الناتج",
+      "cancel": "إلغاء",
+      "save": "تطبيق التعديل",
+      "saving": "جارٍ التطبيق…"
+    }
+  }
+}

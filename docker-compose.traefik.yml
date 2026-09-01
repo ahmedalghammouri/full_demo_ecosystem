@@ -1,0 +1,79 @@
+# ══════════════════════════════════════════════════════════════════
+#  Traefik routing overlay — i360.industry360.cloud
+#
+#    docker compose -f docker-compose.yml -f docker-compose.traefik.yml \
+#      -p i360 up -d --build
+#
+#  Use this when Traefik runs in host network mode. In that mode Traefik
+#  is on no Docker network at all: it reads container IPs from the Docker
+#  socket and dials them directly from the host. There is no network to
+#  join, so the only thing needed is a set of labels telling it this
+#  container exists.
+#
+#  The values below match the Traefik already serving lpg.industry360.cloud
+#  on this host:
+#
+#    --entrypoints.web.address=:80          → entrypoint `web`
+#    --entrypoints.websecure.address=:443   → entrypoint `websecure`
+#    --certificatesresolvers.letsencrypt…   → certresolver `letsencrypt`
+#    --providers.docker.exposedbydefault=false
+#        → traefik.enable=true is REQUIRED or the router is ignored
+#    --entrypoints.web.http.redirections…   → :80 already redirects to
+#        :443 globally, so only the websecure router is declared here
+#
+#  This adds a router beside the ones already running. Traefik matches on
+#  Host(), so lpg.industry360.cloud and any other domain are untouched.
+#
+#  ── On ports ──────────────────────────────────────────────────────
+#  Traefik reaches the container directly on the compose network, so
+#  NOTHING here needs a published host port. Exposure is not handled in
+#  this file: compose MERGES `ports` across overlays rather than
+#  replacing them, so an overlay can only add a binding, never remove
+#  one. That is why BIND_ADDR is a variable in the base file. Set it in
+#  .env before deploying:
+#
+#      BIND_ADDR=127.0.0.1
+#
+#  and every published port becomes loopback-only — reachable through an
+#  SSH tunnel and from nowhere else. The database, cache, broker and
+#  object store are then invisible to the internet while Traefik still
+#  serves the app on 443.
+#
+#  Verify after deploy — this must list ONLY 127.0.0.1 bindings:
+#      docker compose -p i360 ps --format '{{.Name}}\t{{.Ports}}'
+# ══════════════════════════════════════════════════════════════════
+
+services:
+  # Only the web container is routed. It proxies /api and /socket.io to
+  # the API itself (see next.config.ts rewrites), so the API never needs
+  # a public route of its own — one less thing exposed.
+  web:
+    labels:
+      # exposedbydefault=false means nothing is routed without this.
+      - "traefik.enable=true"
+
+      # Naming the network explicitly removes any ambiguity about which
+      # IP Traefik should dial when a container sits on more than one.
+      # Matches `-p i360`.
+      - "traefik.docker.network=i360_default"
+
+      - "traefik.http.routers.i360.rule=Host(`${PUBLIC_DOMAIN:-i360.industry360.cloud}`)"
+      - "traefik.http.routers.i360.entrypoints=websecure"
+      - "traefik.http.routers.i360.tls.certresolver=letsencrypt"
+
+      # The port INSIDE the container. Next listens on 4000 here; this is
+      # unrelated to WEB_PORT, which is only the host-side binding.
+      - "traefik.http.services.i360.loadbalancer.server.port=4000"
+
+      # Websockets. The live feed is Socket.IO, and without the upgrade
+      # headers surviving the proxy it silently degrades to HTTP polling —
+      # the screens still update, just slowly enough to look broken.
+      - "traefik.http.middlewares.i360-ws.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.i360.middlewares=i360-ws"
+
+  # Nothing else is routed. Grafana, Prometheus, MinIO and Swagger stay
+  # on loopback: they are operator tools, not part of the demonstration,
+  # and publishing them would put four more login pages on the internet.
+  # Reach them over an SSH tunnel:
+  #     ssh -L 3103:127.0.0.1:3103 user@host    # Grafana
+  #     ssh -L 4100:127.0.0.1:4100 user@host    # API + Swagger

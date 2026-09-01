@@ -1,0 +1,111 @@
+{
+  "home": "Home",
+  "realtimeOverview": "Real-time overview",
+  "dashboardCenter": "Dashboard Center",
+  "kpi": {
+    "oee": "Overall OEE",
+    "atOee": "OEE-TB",
+    "availability": "Availability",
+    "atAvailability": "Availability · OEE-TB",
+    "performance": "Performance",
+    "quality": "Quality Rate",
+    "output": "Total Output",
+    "alarms": "Active Alarms"
+  },
+  "units": "units",
+  "atOee": "OEE-TB (Time-Based OEE)",
+  "availabilityTb": "Availability (Time-Based)",
+  "atNote": "Cards above are schedule-based · time-based = uptime ÷ (uptime + downtime)",
+  "commandCenter": {
+    "title": "Command Center",
+    "subtitle": "Unified operations, energy & executive cockpit",
+    "wholeFactory": "Whole factory",
+    "sections": {
+      "performance": "Performance & OEE",
+      "energy": "Energy & Utilities",
+      "losses": "Losses & Downtime",
+      "executive": "Executive Overview",
+      "floor": "Live Shop Floor"
+    },
+    "energy": {
+      "livePower": "Live Power",
+      "standby": "Standby Waste",
+      "standbyMeters": "{{n}} meter(s) drawing power with no production",
+      "consumptionMtd": "Electricity (MTD)",
+      "costMtd": "Utility Cost (MTD)",
+      "today": "Electricity Today",
+      "byType": "Consumption by Utility",
+      "trend": "Electricity — last 7 days",
+      "noData": "No energy data in scope",
+      "meters": "meters"
+    },
+    "executive": {
+      "byFactory": "OEE & Output by Factory",
+      "byArea": "OEE & Output by Area",
+      "oee": "OEE",
+      "output": "Output",
+      "cost": "Cost (MTD)",
+      "noData": "No comparison data available"
+    },
+    "types": {
+      "ELECTRICAL": "Electricity",
+      "NATURAL_GAS": "Natural Gas",
+      "COMPRESSED_AIR": "Compressed Air",
+      "WATER": "Water",
+      "STEAM": "Steam",
+      "CHILLED_WATER": "Chilled Water"
+    }
+  },
+  "energyCenter": {
+    "title": "Energy Command Center",
+    "subtitle": "Live power, multi-utility consumption, cost & waste",
+    "sections": {
+      "live": "Live Power & Meters",
+      "consumption": "Consumption Trend",
+      "waste": "Energy Waste & Efficiency",
+      "consumers": "Top Live Consumers"
+    },
+    "kpi": {
+      "power": "Live Power",
+      "standby": "Standby Waste",
+      "consumptionMtd": "Electricity (MTD)",
+      "costMtd": "Utility Cost (MTD)",
+      "today": "Electricity Today",
+      "perUnit": "Avg kWh / unit"
+    },
+    "waste": {
+      "title": "Production Energy Split",
+      "running": "Running",
+      "idle": "Idle (waste)",
+      "downtime": "Downtime (waste)",
+      "anomalies": "Power anomalies",
+      "noData": "No production energy data in range"
+    },
+    "consumers": { "noData": "No live consumers", "standbyTag": "standby" },
+    "noConsumption": "No consumption data in range"
+  },
+  "executiveCenter": {
+    "title": "Executive Multi-Plant",
+    "subtitle": "Enterprise performance across all factories",
+    "totals": {
+      "avgOee": "Avg OEE",
+      "output": "Total Output",
+      "cost": "Utility Cost (MTD)",
+      "alarms": "Active Alarms",
+      "ncrs": "Open NCRs",
+      "maintenance": "Open Maint. WOs"
+    },
+    "comparison": "OEE & Output by Factory",
+    "table": {
+      "factory": "Factory",
+      "oee": "OEE",
+      "apq": "A / P / Q",
+      "output": "Output",
+      "cost": "Cost (SAR)",
+      "alarms": "Alarms",
+      "ncrs": "NCRs",
+      "maint": "Maint."
+    },
+    "noData": "No factory data"
+  }
+}

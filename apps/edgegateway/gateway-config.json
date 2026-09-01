@@ -1,0 +1,12 @@
+{
+  "gatewayName": "Plant Edge Gateway 1",
+  "factoryCode": "SDPF",
+  "databaseUrl": "postgresql://i360_user:i360_pass_2026@localhost:5433/industry360?schema=public",
+  "mqttBrokerUrl": "mqtt://localhost:1883",
+  "influxUrl": "http://localhost:8086",
+  "influxToken": "i360-influx-super-secret-token",
+  "influxOrg": "industry360",
+  "influxBucket": "i360_timeseries",
+  "mesPlatformUrl": "http://localhost:8080",
+  "defaultPollIntervalMs": 1000
+}
