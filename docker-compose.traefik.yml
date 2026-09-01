@@ -52,10 +52,16 @@ services:
       # exposedbydefault=false means nothing is routed without this.
       - "traefik.enable=true"
 
-      # Naming the network explicitly removes any ambiguity about which
-      # IP Traefik should dial when a container sits on more than one.
-      # Matches `-p i360`.
-      - "traefik.docker.network=i360_default"
+      # Naming the network removes any ambiguity about which IP Traefik should
+      # dial when a container sits on more than one.
+      #
+      # The name is <project>_<network>, and this compose declares a NAMED
+      # network rather than relying on the default — so with `-p i360` it is
+      # `i360_i360-network`, not `i360_default`. Getting this wrong is a 404
+      # from Traefik with nothing in the app's own logs to explain it.
+      # Confirm on the server with:
+      #   docker inspect i360-web -f '{{range $$k,$$v := .NetworkSettings.Networks}}{{$$k}}{{println}}{{end}}'
+      - "traefik.docker.network=i360_i360-network"
 
       - "traefik.http.routers.i360.rule=Host(`${PUBLIC_DOMAIN:-i360.industry360.cloud}`)"
       - "traefik.http.routers.i360.entrypoints=websecure"

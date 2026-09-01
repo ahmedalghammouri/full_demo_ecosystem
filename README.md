@@ -59,6 +59,9 @@ mount that shadows the built bundle.
 
 ### Deploying behind Traefik
 
+Full walkthrough for the Hostinger VPS, including what to verify and in what
+order: **[DEPLOYMENT.md](DEPLOYMENT.md)**.
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.traefik.yml   -p i360 up -d --build
 ```
