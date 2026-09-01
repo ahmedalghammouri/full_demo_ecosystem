@@ -486,3 +486,13 @@
 .i360-map .leaflet-control-attribution a {
   color: rgba(255, 255, 255, 0.75);
 }
+
+/* ══════════════════════════════════════════════
+   Power-quality status scale
+   ══════════════════════════════════════════════
+   Ordered, not categorical: ride-through → no damage → prohibited. Every mark
+   that uses these also ships with its label and its own shape, because
+   ride-through green and prohibited red collide under deuteranopia, and these
+   plots are routinely circulated in black and white. */
+:root { --pq-ok: #1F7A5A; --pq-warn: #B5842A; --pq-crit: #A8382F; }
+.dark { --pq-ok: #4FA97E; --pq-warn: #D4A64A; --pq-crit: #E0736A; }

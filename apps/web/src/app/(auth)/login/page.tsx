@@ -164,7 +164,7 @@ function LoginPageInner() {
               360°
             </div>
             <div>
-              <div className="font-bold text-xl tracking-tight"><span className="text-white">Industry</span><span style={{ color: '#D9BB75' }}>360°</span></div>
+              <div className="font-bold text-xl tracking-tight"><span className="text-white">i</span><span style={{ color: '#D9BB75' }}>360°</span></div>
               <div className="text-primary/70 text-xs font-medium tracking-widest uppercase">Manufacturing Execution</div>
             </div>
           </div>
@@ -223,7 +223,7 @@ function LoginPageInner() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-300 to-accent-500 flex items-center justify-center font-black text-[12px] tracking-tight text-brand-800">
               360°
             </div>
-            <div className="font-bold text-lg"><span>Industry</span><span style={{ color: '#B08E42' }}>360°</span></div>
+            <div className="font-bold text-lg"><span>i</span><span style={{ color: '#B08E42' }}>360°</span></div>
           </div>
 
           {/* Factory context badge */}

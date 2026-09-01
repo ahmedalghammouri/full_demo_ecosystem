@@ -50,7 +50,7 @@ export default function OperationHubLayout({ children }: { children: React.React
             </div>
             <div className="leading-none">
               <div className="font-black text-[15px] tracking-tight">
-                <span style={{ color: '#003933' }}>Industry</span>
+                <span style={{ color: '#003933' }}>i</span>
                 <span style={{ color: '#B08E42' }}>360°</span>
               </div>
               <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground/40 mt-0.5">

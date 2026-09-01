@@ -908,7 +908,7 @@ export function Sidebar() {
                   className="font-black text-[15px] tracking-tight"
                   style={{ background: 'linear-gradient(90deg, #003933, #4c7571)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
                 >
-                  MES
+                  i
                 </span>
                 <span className="font-bold text-[15px] tracking-tight" style={{ color: '#B08E42' }}>360°</span>
               </div>

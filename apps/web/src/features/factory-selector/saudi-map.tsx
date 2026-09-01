@@ -1,5 +1,7 @@
 'use client';
 
+import 'leaflet/dist/leaflet.css';
+
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Map as LeafletMap, Marker as LeafletMarker } from 'leaflet';
@@ -164,16 +166,6 @@ export function SaudiMap({ factories, selectedId, hoveredId, onHover, onSelect }
 
   // Initialize map once
   useEffect(() => {
-    // Leaflet base CSS via CDN — avoids any SSR/build issues
-    if (!document.getElementById('lf-css')) {
-      const link = document.createElement('link');
-      link.id = 'lf-css';
-      link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-      link.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
-      link.crossOrigin = '';
-      document.head.appendChild(link);
-    }
     if (!document.getElementById('fpin-css')) {
       const style = document.createElement('style');
       style.id = 'fpin-css';

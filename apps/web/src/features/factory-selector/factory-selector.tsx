@@ -211,7 +211,7 @@ export function FactorySelector() {
               360°
             </div>
             <div>
-              <div className="font-bold text-lg tracking-tight leading-none"><span className="text-white">Industry</span><span style={{ color: '#D9BB75' }}>360°</span></div>
+              <div className="font-bold text-lg tracking-tight leading-none"><span className="text-white">i</span><span style={{ color: '#D9BB75' }}>360°</span></div>
               <div className="text-brand-300/70 text-xs font-mono tracking-widest">{t('factorySel.mfgExecution')}</div>
             </div>
           </div>
