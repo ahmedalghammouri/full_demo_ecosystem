@@ -1,0 +1,82 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+.next
+out
+.turbo
+*.tsbuildinfo
+
+# Environment
+#.env
+.env.local
+.env.*.local
+.env.production
+# real (filled) Hostinger env — keep secrets out of git; the .example is tracked
+#.env.hostinger
+
+# Logs (runtime log output only — NOT source folders literally named "logs",
+# e.g. the Next.js route apps/web/src/app/(platform)/maintenance/logs)
+/logs/
+apps/api/logs/
+apps/edgegateway/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/settings.json
+.idea
+*.swp
+*.swo
+
+# Testing
+coverage
+.nyc_output
+playwright-report
+test-results
+
+# Prisma
+apps/api/prisma/migrations/*.sql
+
+# Docker
+.docker
+
+# Certificates
+*.pem
+*.key
+*.crt
+
+# Cache
+.cache
+.parcel-cache
+
+# Internal admin doc (contains credentials) — do not commit
+SYSTEM-ADMIN-ACCESS.md
+
+# Edge gateway's own generated Prisma client
+apps/edgegateway/src/generated/
+reference/
+reference
+/reference
+
+# Local DB dumps (contain sensitive data - never commit)
+
+# Baseline captures — machine- and moment-specific, regenerated on demand.
+apps/api/.baselines/
+
+# Excel lock files — created while a workbook is open, never wanted in the repo
+~$*
+
+# Chart CSV exports, downloaded from the trend toolbar. Reproducible from the
+# page at any time; committing one freezes a window nobody asked to keep.
+/oee-overview-*.csv
