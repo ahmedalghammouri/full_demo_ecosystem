@@ -76,7 +76,8 @@ import { useAuthStore } from '@/store/auth-store';
 import { useFactoryStore } from '@/store/factory-store';
 import { useNotificationStore } from '@/store/notification-store';
 import { filterNavByPermission } from '@/lib/nav-permissions';
-import { filterNavByCapability, capabilitiesOfFactory, type FactoryCapability } from '@/lib/nav-capabilities';
+import { filterNavByCapability, type FactoryCapability } from '@/lib/nav-capabilities';
+import { useFactoryCapabilities } from '@/lib/use-capabilities';
 import { api } from '@/services/api.client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -876,17 +877,20 @@ export function Sidebar() {
   // With no factory selected we are at the enterprise level and nothing is
   // pruned: the estate as a whole has every module even though no single site
   // does.
-  const capabilities = useMemo(
-    () => capabilitiesOfFactory(selectedFactory),
-    [selectedFactory],
-  );
+  // Capabilities come from the API, not from the persisted factory object.
+  //
+  // The store survives in localStorage across deploys, so a session that
+  // predates the capability list keeps the old shape forever. Gating on that
+  // made the navigation depend on when someone last signed in — and with the
+  // fail-closed rule below, it hid every specialised screen at every site.
+  const { capabilities, resolved } = useFactoryCapabilities(selectedFactory);
   const visibleNav = useMemo(
-    () => filterNavByCapability(filterNavByPermission(navItems, hasPermission), capabilities, !!selectedFactory),
-    [hasPermission, user?.permissions, capabilities, selectedFactory],
+    () => filterNavByCapability(filterNavByPermission(navItems, hasPermission), capabilities, !!selectedFactory && resolved),
+    [hasPermission, user?.permissions, capabilities, selectedFactory, resolved],
   );
   const visibleBottomNav = useMemo(
-    () => filterNavByCapability(filterNavByPermission(bottomNavItems, hasPermission), capabilities, !!selectedFactory),
-    [hasPermission, user?.permissions, capabilities, selectedFactory],
+    () => filterNavByCapability(filterNavByPermission(bottomNavItems, hasPermission), capabilities, !!selectedFactory && resolved),
+    [hasPermission, user?.permissions, capabilities, selectedFactory, resolved],
   );
 
   return (
