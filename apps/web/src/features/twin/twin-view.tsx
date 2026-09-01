@@ -64,6 +64,28 @@ export function TwinView() {
     refetchInterval: 30_000,
   });
 
+  // Every hook runs before any conditional return.
+  //
+  // These derivations used to sit below the guards, so a factory that came back
+  // 403 rendered a different number of hooks than one that came back 200 —
+  // React error #300, which blanks the page and reports nothing useful in a
+  // production build. The Rules of Hooks are not a style preference: a hook
+  // after an early return is a crash waiting for the branch to be taken.
+  const data = layoutQ.data;
+  const assets = data?.assets ?? [];
+  const active = assets.find((a) => a.code === selected) ?? null;
+
+  const legendStates = React.useMemo(
+    () =>
+      Object.entries(data?.byState ?? {})
+        .sort((a, b) => (STATE_META[b[0]]?.attention ?? 0) - (STATE_META[a[0]]?.attention ?? 0))
+        .map(([key, count]) => ({ key, label: stateLabel(key), count })),
+    [data?.byState],
+  );
+
+  const alarmed = assets.reduce((n, a) => n + (a.alarms > 0 ? 1 : 0), 0);
+  const todayGood = assets.reduce((n, a) => n + (a.goodCount ?? 0), 0);
+
   if (!factoryId) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
@@ -94,21 +116,6 @@ export function TwinView() {
       </div>
     );
   }
-
-  const data = layoutQ.data;
-  const assets = data?.assets ?? [];
-  const active = assets.find((a) => a.code === selected) ?? null;
-
-  const legendStates = React.useMemo(
-    () =>
-      Object.entries(data?.byState ?? {})
-        .sort((a, b) => (STATE_META[b[0]]?.attention ?? 0) - (STATE_META[a[0]]?.attention ?? 0))
-        .map(([key, count]) => ({ key, label: stateLabel(key), count })),
-    [data?.byState],
-  );
-
-  const alarmed = assets.reduce((n, a) => n + (a.alarms > 0 ? 1 : 0), 0);
-  const todayGood = assets.reduce((n, a) => n + (a.goodCount ?? 0), 0);
 
   return (
     <PageShell loading={layoutQ.isLoading} kpiCount={4} showChart>

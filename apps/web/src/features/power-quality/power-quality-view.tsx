@@ -137,6 +137,20 @@ export function PowerQualityView() {
     retry: false,
   });
 
+  // Every hook runs before any conditional return — see the note in twin-view.
+  // A 403 branch that skipped a useMemo rendered a different hook count than the
+  // success branch, which is React error #300 and a blank page.
+  const s = summaryQ.data;
+  const points = iticQ.data?.points ?? [];
+
+  const byZone = React.useMemo(() => {
+    const g: Record<string, IticPoint[]> = { NO_INTERRUPTION: [], NO_DAMAGE: [], PROHIBITED: [] };
+    for (const p of points) if (p.iticZone && g[p.iticZone]) g[p.iticZone].push(p);
+    return g;
+  }, [points]);
+
+  const outsideRideThrough = points.filter((p) => p.iticZone && p.iticZone !== 'NO_INTERRUPTION').length;
+
   // No factory in scope. The queries are disabled, so without this the page
   // would render its full furniture around an empty chart — which reads as
   // "no events here" when the truth is "you have not said where to look".
@@ -174,17 +188,6 @@ export function PowerQualityView() {
       </div>
     );
   }
-
-  const s = summaryQ.data;
-  const points = iticQ.data?.points ?? [];
-
-  const byZone = React.useMemo(() => {
-    const g: Record<string, IticPoint[]> = { NO_INTERRUPTION: [], NO_DAMAGE: [], PROHIBITED: [] };
-    for (const p of points) if (p.iticZone && g[p.iticZone]) g[p.iticZone].push(p);
-    return g;
-  }, [points]);
-
-  const outsideRideThrough = points.filter((p) => p.iticZone && p.iticZone !== 'NO_INTERRUPTION').length;
 
   return (
     <PageShell loading={summaryQ.isLoading} kpiCount={4} showChart showTable>
